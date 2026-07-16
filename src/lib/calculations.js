@@ -27,6 +27,19 @@ export const plannedSavingForDate = (state, date = new Date()) => {
   return Number(state.monthlySavings[Math.floor(index / 12)]?.[index % 12] || 0)
 }
 
+
+export const specialPaymentTotalForDate = (state, date = new Date(), target = null) =>
+  (state.specialPayments || [])
+    .filter(payment =>
+      Number(payment.year) === date.getFullYear()
+      && Number(payment.month) === date.getMonth() + 1
+      && (!target || payment.target === target)
+    )
+    .reduce((sum,payment) => sum + Math.max(0,Number(payment.amount || 0)),0)
+
+export const plannedContributionForDate = (state, date = new Date()) =>
+  plannedSavingForDate(state,date) + specialPaymentTotalForDate(state,date)
+
 export function projection(state) {
   const start = new Date(`${state.project.start}T12:00:00`)
   const snapshots = [...state.snapshots].sort((a,b) => new Date(a.date) - new Date(b.date))
@@ -221,7 +234,15 @@ export function annualStatistics(state) {
   return Array.from({length:5},(_,year)=>{
     const end = rows[(year+1)*12-1]
     const startRow = year===0 ? null : rows[year*12-1]
-    const planned = state.monthlySavings[year].reduce((a,b)=>a+Number(b||0),0) + Number(state.assumptions.specialAnnual||0)
+    const yearStart = addMonths(start,year*12)
+    const yearEnd = addMonths(yearStart,12)
+    const special = (state.specialPayments || [])
+      .filter(payment => {
+        const date = new Date(Number(payment.year),Number(payment.month)-1,1)
+        return date >= yearStart && date < yearEnd
+      })
+      .reduce((sum,payment)=>sum+Math.max(0,Number(payment.amount||0)),0)
+    const planned = state.monthlySavings[year].reduce((a,b)=>a+Number(b||0),0) + special
     const value = end?.total || 0
     const prior = startRow?.total ?? (Number(state.assets.home||0)+Number(state.assets.pension||0))
     const gain = Math.max(0,value-prior-planned)
@@ -251,7 +272,7 @@ export function monthlyActualSeries(state) {
 
 export function monthlyReview(state) {
   const now = new Date()
-  const planned = plannedSavingForDate(state,now)
+  const planned = plannedContributionForDate(state,now)
   const current = Number(state.assets.home||0)+Number(state.assets.pension||0)
   const progress = state.project.goal>0 ? current/state.project.goal : 0
   const milestone = nextCapitalMilestone(state)

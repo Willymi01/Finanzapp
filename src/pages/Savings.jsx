@@ -89,7 +89,15 @@ export default function Savings({ state, setState }) {
           <tbody>
             {state.monthlySavings.map((yearValues,year)=>{
               const rowStart=addMonths(start,year*12)
-              const total=yearValues.reduce((a,b)=>a+Number(b||0),0)
+              const rowEnd=addMonths(rowStart,12)
+              const monthlyTotal=yearValues.reduce((a,b)=>a+Number(b||0),0)
+              const specialTotal=(state.specialPayments||[])
+                .filter(payment=>{
+                  const date=new Date(Number(payment.year),Number(payment.month)-1,1)
+                  return date>=rowStart&&date<rowEnd
+                })
+                .reduce((sum,payment)=>sum+Math.max(0,Number(payment.amount||0)),0)
+              const total=monthlyTotal+specialTotal
               return <tr key={year}>
                 <td className="saving-year">
                   Jahr {year+1}
@@ -105,7 +113,10 @@ export default function Savings({ state, setState }) {
                     {specialTotal>0&&<small className="saving-special">+ {euro(specialTotal)}</small>}
                   </td>
                 })}
-                <td><b>{euro(total)}</b></td>
+                <td className="year-total-cell">
+                  <b>{euro(total)}</b>
+                  {specialTotal>0&&<small>{euro(monthlyTotal)} + {euro(specialTotal)} Sonderz.</small>}
+                </td>
                 <td>{euro(total/12)}</td>
               </tr>
             })}

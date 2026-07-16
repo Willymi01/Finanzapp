@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Panel } from '../components/Cards'
 import {
   euro, percent, financeCoachAnalysis, simulateAdditionalSaving,
-  coachWeeklyReport, coachMonthlyReport
+  coachWeeklyReport, coachMonthlyReport, totalSpecialPayments
 } from '../lib/calculations'
 
 const icon={good:'✓',warn:'!',neutral:'i'}
@@ -13,6 +13,7 @@ export default function Coach({state,setState}) {
   const weekly=useMemo(()=>coachWeeklyReport(state),[state])
   const monthly=useMemo(()=>coachMonthlyReport(state),[state])
   const scenarios=useMemo(()=>[25,50,100].map(value=>simulateAdditionalSaving(state,value)),[state])
+  const specialTotal=totalSpecialPayments(state)
 
   const categories=['Alle',...new Set(analysis.insights.map(item=>item.category))]
   const visible=filter==='Alle'?analysis.insights:analysis.insights.filter(item=>item.category===filter)
@@ -52,6 +53,7 @@ export default function Coach({state,setState}) {
       <div><span>Ziel erreicht</span><b>{percent(analysis.progress)}</b></div>
       <div><span>Sparquote</span><b>{percent(analysis.saveRate)}</b></div>
       <div><span>ETF-Renditeeffekt</span><b>{euro(analysis.returns)}</b></div>
+      <div><span>Sonderzahlungen geplant</span><b>{euro(specialTotal)}</b></div>
     </div>
 
     <div className="coach-filter">

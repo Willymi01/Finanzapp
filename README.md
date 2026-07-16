@@ -1,27 +1,20 @@
-# Meine Finanzzentrale V10.6 – Sonderzahlungen im Sparplan
+# Meine Finanzzentrale V10.6.1 – Sonderzahlungen Korrektur
 
-Neu:
-- Sonderzahlungen direkt unter dem Sparplan
-- Jahr und Monat frei wählbar
-- Betrag und Beschreibung
-- Ziel auswählbar:
-  - ETF / Eigenkapital
-  - Rentenversicherung
-  - Notgroschen
-- Sonderzahlungen erscheinen direkt im jeweiligen Monatsfeld
-- ETF-Sonderzahlungen wachsen ab dem Buchungsmonat mit der eingestellten ETF-Rendite
-- Rentenzahlungen wachsen mit dem Renten-Wertzuwachs
-- Notgroschen-Zahlungen erhöhen die Reserve
-- Dashboard, Timeline, Finanzierung, Statistik und Finanzcoach verwenden automatisch die neue Prognose
-- Supabase, JSON-Export und Backups speichern die Sonderzahlungen mit
+Korrigiert:
+- Jahressumme im Sparplan enthält jetzt Monatsraten plus Sonderzahlungen.
+- Monatsdurchschnitt enthält ebenfalls die Sonderzahlungen.
+- Unter der Jahressumme wird die Aufteilung angezeigt.
+- Jahresvergleich in den Statistiken nutzt die monatsgenauen Sonderzahlungen.
+- Monatsrückblick berücksichtigt Sonderzahlungen des aktuellen Monats.
+- Finanzcoach zeigt die insgesamt geplanten Sonderzahlungen.
+- Vermögensprognose, Finanzierung, Timeline und Zieltermin nutzen weiterhin die monatsgenaue Projektion.
 
-Wichtig:
-Die bisherige pauschale Sonderzahlung aus den Annahmen wird nicht mehr zusätzlich in der Projektion verwendet. Dadurch werden Zahlungen nicht doppelt berechnet.
+Beispiel:
+4.800 € reguläre Sparraten + 1.000 € Sonderzahlung = 5.800 € Jahressumme.
 
 Update:
 1. ZIP entpacken.
 2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 10.6 Sonderzahlungen“.
+3. Commit „Version 10.6.1 Sonderzahlungen Fix“.
 4. Push origin.
-5. GitHub Actions abwarten.
-6. Unter Sparplan eine Testzahlung anlegen und die Prognose prüfen.
+5. Nach dem grünen Workflow die App vollständig neu laden.

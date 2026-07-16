@@ -3,7 +3,7 @@ import SimpleChart from '../components/SimpleChart'
 import {
   euro, percent, projection, financing, surplus, incomeTotal,
   monthsUntilDate, savingsRate, currentGoalProgress, nextCapitalMilestone,
-  planStatus, coachMessages, financeCoachAnalysis
+  planStatus, coachMessages, financeCoachAnalysis, plannedContributionForDate
 } from '../lib/calculations'
 
 const greeting=()=>{
@@ -19,6 +19,7 @@ export default function Dashboard({ state }) {
   const plan = projection(state).filter(x=>x.total!=null)
   const fin = financing(state)
   const months = monthsUntilDate(state.project.target)
+  const currentContribution = plannedContributionForDate(state)
   const progress = currentGoalProgress(state)
   const saveRate = savingsRate(state)
   const milestone = nextCapitalMilestone(state)

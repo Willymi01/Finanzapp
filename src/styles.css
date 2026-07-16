@@ -274,3 +274,6 @@
 /* Version 10.6 Sonderzahlungen im Sparplan */
 .saving-special{display:block;margin-top:5px;padding:3px 5px;border-radius:6px;background:#26391c;color:#dfffc8;font-size:9px;font-weight:800}
 .special-payments-table{min-width:980px}.special-payments-table select{width:100%;background:#fff3bb;color:#111;border:1px solid #d4c36c;border-radius:8px;padding:9px;font-weight:650}.special-payments-table td:nth-child(1){min-width:95px}.special-payments-table td:nth-child(2){min-width:145px}.special-payments-table td:nth-child(3){min-width:120px}.special-payments-table td:nth-child(4){min-width:170px}.special-payments-table td:nth-child(5){min-width:220px}
+
+/* Version 10.6.1: konsistente Jahressummen inklusive Sonderzahlungen */
+.year-total-cell small{display:block;margin-top:4px;color:var(--muted);font-size:9px;white-space:nowrap}
