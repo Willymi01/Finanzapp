@@ -1,37 +1,22 @@
-# Meine Finanzzentrale V8.2 – einsatzbereit
+# Meine Finanzzentrale V8.3 – Registry-Fix
 
-Enthalten:
-- Dashboard und Vermögensprognose
-- Finanzplan im vertrauten Schwarz/Grün/Rot/Gelb/Blau-Stil
-- editierbare Einnahmen, feste/variable Kosten und Jahresposten
-- monatlicher Sparplan mit Zwischenständen
-- Vermögensübersicht
-- Finanzierung und drei Was-wäre-wenn-Szenarien
-- Wohnungscockpit mit Favoriten, Link, KfW, Energie und Notizen
-- lokale PIN-Sperre
-- Supabase-Cloud-Synchronisierung
-- PWA-Installation auf PC und Handy
-- automatische Datenmigration und JSON-Backups
+Diese Version behebt den Fehler `ETIMEDOUT` beim GitHub-Actions-Schritt `npm install`.
 
-## Update auf GitHub
+Ursache:
+Die vorherige `package-lock.json` wurde in einer internen Build-Umgebung erzeugt und enthielt interne Paket-URLs. GitHub konnte diese Adressen nicht erreichen.
+
+Korrektur:
+- die alte `package-lock.json` wurde entfernt
+- der Workflow verwendet ausdrücklich `https://registry.npmjs.org/`
+- Proxy-Einstellungen werden vor der Installation entfernt
+- danach wird die App normal gebaut und über GitHub Pages veröffentlicht
+
+## Update
 
 1. ZIP entpacken.
-2. Alle Dateien in den lokalen Repository-Ordner kopieren und ersetzen.
-3. GitHub Desktop: Commit `Version 8.2 komplett`.
-4. Push origin.
-5. Actions abwarten, bis `Deploy to GitHub Pages` grün ist.
-6. Seite mit Strg+F5 neu laden.
-
-## Handy
-
-Die GitHub-Pages-Adresse in Chrome oder Safari öffnen:
-- Android: Menü → App installieren / Zum Startbildschirm
-- iPhone: Teilen → Zum Home-Bildschirm
-
-## Cloud
-
-Repository-Secrets:
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
-
-Die bestehende Tabelle `finance_profiles` und RLS-Regeln können weiterverwendet werden.
+2. Alle Dateien in den lokalen Repository-Ordner kopieren.
+3. Vorhandene Dateien ersetzen.
+4. Prüfen, dass eine eventuell alte `package-lock.json` im Repository-Ordner gelöscht ist.
+5. GitHub Desktop: Commit `V8.3 Registry Fix`.
+6. Push origin.
+7. Unter Actions warten, bis der Workflow grün wird.
