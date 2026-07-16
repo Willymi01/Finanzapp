@@ -1,51 +1,37 @@
-# Meine Finanzzentrale V8.1
+# Meine Finanzzentrale V8.2 – einsatzbereit
 
-Neuaufbau mit React, Vite und modularen Komponenten.
+Enthalten:
+- Dashboard und Vermögensprognose
+- Finanzplan im vertrauten Schwarz/Grün/Rot/Gelb/Blau-Stil
+- editierbare Einnahmen, feste/variable Kosten und Jahresposten
+- monatlicher Sparplan mit Zwischenständen
+- Vermögensübersicht
+- Finanzierung und drei Was-wäre-wenn-Szenarien
+- Wohnungscockpit mit Favoriten, Link, KfW, Energie und Notizen
+- lokale PIN-Sperre
+- Supabase-Cloud-Synchronisierung
+- PWA-Installation auf PC und Handy
+- automatische Datenmigration und JSON-Backups
 
-## Bestehende Daten
-
-Version 8 verwendet dauerhaft den Speichernamen `finanzzentrale` und übernimmt beim ersten Start automatisch Daten aus älteren Versionen. Vor der Migration wird eine lokale Sicherung angelegt.
-
-## GitHub-Update
+## Update auf GitHub
 
 1. ZIP entpacken.
-2. Den Inhalt vollständig in den lokalen Repository-Ordner kopieren.
-3. Alte Dateien dürfen ersetzt werden.
-4. GitHub Desktop öffnen.
-5. Commit: `Version 8.0`.
-6. **Commit to main** und anschließend **Push origin**.
-7. In GitHub unter **Settings → Pages** als Quelle **GitHub Actions** auswählen.
+2. Alle Dateien in den lokalen Repository-Ordner kopieren und ersetzen.
+3. GitHub Desktop: Commit `Version 8.2 komplett`.
+4. Push origin.
+5. Actions abwarten, bis `Deploy to GitHub Pages` grün ist.
+6. Seite mit Strg+F5 neu laden.
 
-Beim ersten Push installiert GitHub automatisch die Abhängigkeiten und veröffentlicht die fertige App.
+## Handy
 
-## Supabase / Cloud
+Die GitHub-Pages-Adresse in Chrome oder Safari öffnen:
+- Android: Menü → App installieren / Zum Startbildschirm
+- iPhone: Teilen → Zum Home-Bildschirm
 
-Im Repository unter **Settings → Secrets and variables → Actions** zwei Repository-Secrets anlegen:
+## Cloud
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+Repository-Secrets:
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_ANON_KEY
 
-Nur den öffentlichen Anon-/Publishable-Key verwenden. Niemals den Service-Role-Key.
-
-Die bereits angelegte Tabelle `finance_profiles` und die RLS-Regeln aus Version 6 können weiterverwendet werden.
-
-## Lokal entwickeln
-
-```bash
-npm install
-npm run dev
-```
-
-## Sicherheit
-
-- GitHub Pages enthält nur den App-Code.
-- Finanzdaten werden lokal oder im eigenen Supabase-Projekt gespeichert.
-- Alte Daten werden automatisch migriert.
-- JSON-Export dient als zusätzliche Sicherung.
-
-
-## Korrektur in Version 8.1
-
-Der GitHub-Workflow verwendet jetzt `npm install` statt `npm ci`.
-Dadurch ist keine bereits vorhandene `package-lock.json` erforderlich.
-Außerdem wurde der Cache entfernt, der ebenfalls eine Lock-Datei vorausgesetzt hatte.
+Die bestehende Tabelle `finance_profiles` und RLS-Regeln können weiterverwendet werden.

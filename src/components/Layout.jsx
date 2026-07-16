@@ -1,4 +1,5 @@
-import { Home, WalletCards, CalendarDays, TrendingUp, Landmark, Building2, Cloud, Settings } from 'lucide-react'
+import { Home, WalletCards, CalendarDays, TrendingUp, Landmark, Building2, Cloud, Settings, Download } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 const items = [
   ['dashboard','Dashboard',Home],['budget','Finanzplan',WalletCards],['savings','Sparplan',CalendarDays],
@@ -7,11 +8,21 @@ const items = [
 ]
 
 export default function Layout({ active, onNavigate, title, children, syncStatus }) {
+  const [installPrompt,setInstallPrompt]=useState(null)
+  useEffect(()=>{
+    const handler=e=>{e.preventDefault();setInstallPrompt(e)}
+    window.addEventListener('beforeinstallprompt',handler)
+    return()=>window.removeEventListener('beforeinstallprompt',handler)
+  },[])
+  const install=async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;setInstallPrompt(null)}
   return <div className="app-shell">
     <aside className="sidebar">
-      <div className="brand"><div className="logo">€</div><div><strong>Finanzzentrale</strong><span>Version 8.0</span></div></div>
+      <div className="brand"><div className="logo">€</div><div><strong>Finanzzentrale</strong><span>Version 8.2</span></div></div>
       <nav>{items.map(([key,label,Icon]) => <button key={key} className={active===key?'active':''} onClick={()=>onNavigate(key)}><Icon size={19}/><span>{label}</span></button>)}</nav>
-      <small className="sidebar-note">Datenmigration & Backups aktiv</small>
+      <div className="sidebar-bottom">
+        {installPrompt&&<button className="install-button" onClick={install}><Download size={17}/><span>App installieren</span></button>}
+        <small>Datenmigration & Backups aktiv</small>
+      </div>
     </aside>
     <main>
       <header className="topbar">
