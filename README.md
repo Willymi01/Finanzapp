@@ -1,24 +1,24 @@
-# Meine Finanzzentrale V10.1 – Dashboard Pro
+# Meine Finanzzentrale V10.2 – Immobilien-Cockpit Pro
 
 Neu:
-- persönliche Begrüßung nach Tageszeit
-- großer Fortschrittsring für das Eigenkapitalziel
-- Countdown in Monaten bis zum geplanten Wohnungskauf
-- neue Kennzahlen für Eigenkapital, Einkommen, Sparquote und Planstatus
-- automatische Anzeige: im Plan, voraus oder hinter dem Plan
-- intelligenter Finanzcoach mit mehreren Hinweisen
-- nächster Eigenkapital-Meilenstein
-- Vermögensaufteilung als Balkendiagramme
-- kompakter Finanzierungsblick
-- Wohnungskauf-Fortschritt direkt auf dem Dashboard
-- optimierte Darstellung auf Handy und PC
+- mehrere Bilder pro Wohnung
+- Favoritenvergleich mit bis zu drei Wohnungen
+- Status: Beobachten, Besichtigung, Favorit oder Absage
+- Bewertung von 1 bis 10
+- Besichtigungstermin
+- Maklername, Telefon und E-Mail
+- Google-Maps-Link und Exposé-Link
+- Wohnfläche, Zimmer, Etage, Energieklasse und KfW
+- PDFs und Bilder als Dokumente
+- Suche, Filter und Duplizieren
+- optimierte Handyansicht
 
-Alle bisherigen Funktionen, Daten, Cloud, Timeline, Backups und der Finanzplan bleiben erhalten.
+Hinweis:
+Bilder unter 1,5 MB und Dokumente unter 2,5 MB verwenden, da sie mit dem App-Datensatz synchronisiert werden.
 
 Update:
 1. ZIP entpacken.
 2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 10.1 Dashboard Pro“.
+3. Commit „Version 10.2 Immobilien-Cockpit Pro“.
 4. Push origin.
 5. GitHub Actions abwarten.
-6. App auf PC und Handy vollständig neu laden.
