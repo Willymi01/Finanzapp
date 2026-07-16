@@ -22,7 +22,7 @@ export const defaultState = {
     maintenance: 100,
     specialAnnual: 1500,
   },
-  assets: { home: 5000, pension: 15000, emergency: 5000 },
+  assets: { home: 5000, pension: 15000, emergency: 0 },
   budget: {
     income: [{ id: crypto.randomUUID(), name: 'Nettoeinkommen', amount: 3300 }],
     fixed: [
