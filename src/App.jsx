@@ -31,7 +31,7 @@ export default function App(){
   const syncTimer=useRef(null)
 
   const setState=updater=>setStateRaw(prev=>typeof updater==='function'?updater(prev):updater)
-  useEffect(()=>{setStateRaw(prev=>saveState(prev))},[state.project,state.assumptions,state.assets,state.budget,state.monthlySavings,state.snapshots,state.properties,state.documents,state.purchaseJourney,state.security])
+  useEffect(()=>{setStateRaw(prev=>saveState(prev))},[state.project,state.assumptions,state.assets,state.budget,state.monthlySavings,state.snapshots,state.specialPayments,state.properties,state.documents,state.purchaseJourney,state.security])
   useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user?.email||null));const {data}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user?.email||null));return()=>data.subscription.unsubscribe()},[])
   useEffect(()=>{
     if(!state.security?.pinHash)return

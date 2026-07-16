@@ -44,6 +44,7 @@ export const defaultState = {
     Array(12).fill(750), Array(12).fill(900),
   ],
   snapshots: [],
+  specialPayments: [],
   properties: [],
   documents: [],
   purchaseJourney: {

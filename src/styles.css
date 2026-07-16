@@ -270,3 +270,7 @@
 .coach-transparency{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.coach-transparency>div{padding:14px;border:1px solid var(--line);border-radius:11px;background:#10151a}.coach-transparency b,.coach-transparency span{display:block}.coach-transparency span{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.45}
 @media(max-width:900px){.coach-summary-grid{grid-template-columns:repeat(2,1fr)}.coach-scenarios,.coach-transparency{grid-template-columns:1fr}}
 @media(max-width:600px){.coach-hero-pro{align-items:flex-start;display:grid}.coach-status{min-width:0}.coach-summary-grid{grid-template-columns:1fr}.coach-hero-pro h2{font-size:23px}}
+
+/* Version 10.6 Sonderzahlungen im Sparplan */
+.saving-special{display:block;margin-top:5px;padding:3px 5px;border-radius:6px;background:#26391c;color:#dfffc8;font-size:9px;font-weight:800}
+.special-payments-table{min-width:980px}.special-payments-table select{width:100%;background:#fff3bb;color:#111;border:1px solid #d4c36c;border-radius:8px;padding:9px;font-weight:650}.special-payments-table td:nth-child(1){min-width:95px}.special-payments-table td:nth-child(2){min-width:145px}.special-payments-table td:nth-child(3){min-width:120px}.special-payments-table td:nth-child(4){min-width:170px}.special-payments-table td:nth-child(5){min-width:220px}

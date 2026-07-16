@@ -40,7 +40,7 @@ export default function Statistics({state}) {
       <div>
         <span>Statistik-Center Pro</span>
         <h2>Deine Finanzen auf einen Blick</h2>
-        <p>Vermögen, Sparquote, Ausgaben und Jahresentwicklung automatisch ausgewertet.</p>
+        <p>Vermögen, Sparquote, Sonderzahlungen, Ausgaben und Jahresentwicklung automatisch ausgewertet.</p>
       </div>
       <div className="statistics-progress">
         <strong>{Math.round(progress*100)}%</strong><span>Eigenkapitalziel</span>

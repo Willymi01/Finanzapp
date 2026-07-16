@@ -40,7 +40,7 @@ export default function Coach({state,setState}) {
       <div>
         <span>Finanzcoach Pro</span>
         <h2>Deine Zahlen verständlich erklärt</h2>
-        <p>Regelbasierte Analysen aus deinem Finanzplan – transparent und ohne externe KI-Übertragung.</p>
+        <p>Regelbasierte Analysen aus deinem Finanzplan inklusive Sonderzahlungen – transparent und ohne externe KI-Übertragung.</p>
       </div>
       <div className={`coach-status ${analysis.status.kind}`}>
         <strong>{analysis.status.label}</strong><span>aktueller Planstatus</span>

@@ -33,6 +33,7 @@ const normalise = value => {
     }))
   }
   merged.snapshots = Array.isArray(merged.snapshots) ? merged.snapshots : []
+  merged.specialPayments = Array.isArray(merged.specialPayments) ? merged.specialPayments : []
   merged.properties = Array.isArray(merged.properties) ? merged.properties : []
   merged.documents = Array.isArray(merged.documents) ? merged.documents : []
   return merged

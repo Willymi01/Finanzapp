@@ -1,30 +1,27 @@
-# Meine Finanzzentrale V10.5 – Finanzcoach Pro
+# Meine Finanzzentrale V10.6 – Sonderzahlungen im Sparplan
 
 Neu:
-- eigener Menüpunkt „Finanzcoach“
-- regelbasierte persönliche Analysen
-- Sparquote, Zeitplan, ETF-Rendite, Finanzierung und Reserve
-- Hinweise mit Ampellogik
-- Szenarien für 25 €, 50 € und 100 € mehr Sparrate
-- Szenarien können direkt auf zukünftige Sparmonate angewendet werden
-- automatischer Wochenbericht
-- automatischer Monatsbericht
-- nächster Eigenkapital-Meilenstein
-- kompakter Finanzcoach-Hinweis auf dem Dashboard
-
-Datenschutz:
-- keine externe KI-Anfrage
-- keine zusätzlichen Datenübertragungen
-- alle Hinweise werden lokal aus deinem App-Datensatz berechnet
-- vorhandene Supabase-Synchronisierung bleibt unverändert
+- Sonderzahlungen direkt unter dem Sparplan
+- Jahr und Monat frei wählbar
+- Betrag und Beschreibung
+- Ziel auswählbar:
+  - ETF / Eigenkapital
+  - Rentenversicherung
+  - Notgroschen
+- Sonderzahlungen erscheinen direkt im jeweiligen Monatsfeld
+- ETF-Sonderzahlungen wachsen ab dem Buchungsmonat mit der eingestellten ETF-Rendite
+- Rentenzahlungen wachsen mit dem Renten-Wertzuwachs
+- Notgroschen-Zahlungen erhöhen die Reserve
+- Dashboard, Timeline, Finanzierung, Statistik und Finanzcoach verwenden automatisch die neue Prognose
+- Supabase, JSON-Export und Backups speichern die Sonderzahlungen mit
 
 Wichtig:
-Die Hinweise sind Planungsmodelle und keine persönliche Anlage-, Steuer- oder Finanzierungsberatung.
+Die bisherige pauschale Sonderzahlung aus den Annahmen wird nicht mehr zusätzlich in der Projektion verwendet. Dadurch werden Zahlungen nicht doppelt berechnet.
 
 Update:
 1. ZIP entpacken.
 2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 10.5 Finanzcoach Pro“.
+3. Commit „Version 10.6 Sonderzahlungen“.
 4. Push origin.
 5. GitHub Actions abwarten.
-6. App auf PC und Handy vollständig neu laden.
+6. Unter Sparplan eine Testzahlung anlegen und die Prognose prüfen.

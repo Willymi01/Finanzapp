@@ -33,23 +33,48 @@ export function projection(state) {
   const latest = snapshots.at(-1)
   let home = latest ? Number(latest.home) : Number(state.assets.home)
   let pension = latest ? Number(latest.pension) : Number(state.assets.pension)
+  let emergency = latest?.emergency != null ? Number(latest.emergency) : Number(state.assets.emergency || 0)
   const baseDate = latest ? new Date(`${latest.date}T12:00:00`) : start
   const rows = []
+
+  const payments = Array.isArray(state.specialPayments) ? state.specialPayments : []
+
   for (let i=0; i<60; i++) {
     const date = addMonths(start, i)
+
     if (date < new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)) {
-      rows.push({ date, home: null, pension: null, total: null })
+      rows.push({ date, home: null, pension: null, emergency: null, total: null, specialPayments: [] })
       continue
     }
+
     if (latest && date.getFullYear() === baseDate.getFullYear() && date.getMonth() === baseDate.getMonth()) {
-      rows.push({ date, home, pension, total: home + pension })
+      const monthPayments = payments.filter(p => Number(p.year) === date.getFullYear() && Number(p.month) === date.getMonth() + 1)
+      rows.push({ date, home, pension, emergency, total: home + pension, totalWithEmergency: home + pension + emergency, specialPayments: monthPayments })
       continue
     }
+
     const monthly = Number(state.monthlySavings[Math.floor(i/12)]?.[i%12] || 0)
+
     home = home * (1 + state.assumptions.investmentReturn / 12) + monthly
-    pension *= (1 + state.assumptions.pensionGrowth / 12)
-    if (i % 12 === 11) home += Number(state.assumptions.specialAnnual || 0)
-    rows.push({ date, home, pension, total: home + pension })
+    pension = pension * (1 + state.assumptions.pensionGrowth / 12)
+
+    const monthPayments = payments.filter(p => Number(p.year) === date.getFullYear() && Number(p.month) === date.getMonth() + 1)
+    for (const payment of monthPayments) {
+      const amount = Math.max(0, Number(payment.amount || 0))
+      if (payment.target === 'Rente') pension += amount
+      else if (payment.target === 'Notgroschen') emergency += amount
+      else home += amount
+    }
+
+    rows.push({
+      date,
+      home,
+      pension,
+      emergency,
+      total: home + pension,
+      totalWithEmergency: home + pension + emergency,
+      specialPayments: monthPayments
+    })
   }
   return rows
 }
@@ -382,4 +407,17 @@ export function coachMonthlyReport(state) {
       `Geschätzter Renditebeitrag bis zum Ziel: ${euro(analysis.returns)}`
     ]
   }
+}
+
+
+export function totalSpecialPayments(state) {
+  return (state.specialPayments || []).reduce((sum,p)=>sum+Math.max(0,Number(p.amount||0)),0)
+}
+
+export function specialPaymentsForYear(state, year) {
+  return (state.specialPayments || []).filter(p=>Number(p.year)===Number(year))
+}
+
+export function specialPaymentsForMonth(state, year, month) {
+  return (state.specialPayments || []).filter(p=>Number(p.year)===Number(year)&&Number(p.month)===Number(month))
 }
