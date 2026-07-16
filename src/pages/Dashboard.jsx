@@ -3,7 +3,7 @@ import SimpleChart from '../components/SimpleChart'
 import {
   euro, percent, projection, financing, surplus, incomeTotal,
   monthsUntilDate, savingsRate, currentGoalProgress, nextCapitalMilestone,
-  planStatus, coachMessages
+  planStatus, coachMessages, financeCoachAnalysis
 } from '../lib/calculations'
 
 const greeting=()=>{
@@ -24,6 +24,7 @@ export default function Dashboard({ state }) {
   const milestone = nextCapitalMilestone(state)
   const status = planStatus(state)
   const messages = coachMessages(state)
+  const coachAnalysis = financeCoachAnalysis(state)
   const journeyDone = Object.entries(state.purchaseJourney||{}).filter(([key,value])=>key!=='notes'&&value===true).length
 
   return <>
@@ -71,7 +72,7 @@ export default function Dashboard({ state }) {
         </div>
       </Panel>
 
-      <Panel title="Finanzcoach" subtitle="Hinweise aus deinen aktuellen Daten" className="span-4">
+      <Panel title="Finanzcoach" subtitle={`Planstatus: ${coachAnalysis.status.label}`} className="span-4">
         <div className="coach-list">
           {messages.map((message,index)=>
             <div className={`coach-message ${message.type}`} key={index}>

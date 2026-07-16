@@ -13,10 +13,11 @@ import Settings from './pages/Settings'
 import Documents from './pages/Documents'
 import Timeline from './pages/Timeline'
 import Statistics from './pages/Statistics'
+import Coach from './pages/Coach'
 import { loadState, saveState, createLocalBackup } from './lib/storage'
 import { configured, supabase } from './lib/supabase'
 
-const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',timeline:'Timeline',statistics:'Statistiken',assets:'Vermögen',financing:'Finanzierung',journey:'Mein Wohnungskauf',properties:'Wohnungen',documents:'Dokumente',cloud:'Cloud & Login',settings:'Einstellungen'}
+const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',timeline:'Timeline',statistics:'Statistiken',coach:'Finanzcoach',assets:'Vermögen',financing:'Finanzierung',journey:'Mein Wohnungskauf',properties:'Wohnungen',documents:'Dokumente',cloud:'Cloud & Login',settings:'Einstellungen'}
 
 export default function App(){
   const [active,setActive]=useState('dashboard')
@@ -68,7 +69,7 @@ export default function App(){
   }),[configured,email,password,user,autoSync,state])
 
   const props={state,setState}
-  const pages={dashboard:<Dashboard {...props}/>,budget:<Budget {...props}/>,savings:<Savings {...props}/>,timeline:<Timeline {...props}/>,statistics:<Statistics {...props}/>,assets:<Assets {...props}/>,financing:<Financing {...props}/>,journey:<Journey {...props}/>,properties:<Properties {...props}/>,documents:<Documents {...props}/>,cloud:<Cloud cloud={cloud}/>,settings:<Settings {...props} onLockChange={setLocked}/>}
+  const pages={dashboard:<Dashboard {...props}/>,budget:<Budget {...props}/>,savings:<Savings {...props}/>,timeline:<Timeline {...props}/>,statistics:<Statistics {...props}/>,coach:<Coach {...props}/>,assets:<Assets {...props}/>,financing:<Financing {...props}/>,journey:<Journey {...props}/>,properties:<Properties {...props}/>,documents:<Documents {...props}/>,cloud:<Cloud cloud={cloud}/>,settings:<Settings {...props} onLockChange={setLocked}/>}
   return <>
     {locked&&<LockScreen pinHash={state.security.pinHash} onUnlock={()=>setLocked(false)}/>}
     <Layout active={active} onNavigate={setActive} title={titles[active]} syncStatus={syncStatus}>{pages[active]}</Layout>

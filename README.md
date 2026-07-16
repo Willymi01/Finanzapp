@@ -1,27 +1,30 @@
-# Meine Finanzzentrale V10.5 – ETF-Rendite sichtbar
+# Meine Finanzzentrale V10.5 – Finanzcoach Pro
 
-Gezielte Änderung ohne großen Umbau:
+Neu:
+- eigener Menüpunkt „Finanzcoach“
+- regelbasierte persönliche Analysen
+- Sparquote, Zeitplan, ETF-Rendite, Finanzierung und Reserve
+- Hinweise mit Ampellogik
+- Szenarien für 25 €, 50 € und 100 € mehr Sparrate
+- Szenarien können direkt auf zukünftige Sparmonate angewendet werden
+- automatischer Wochenbericht
+- automatischer Monatsbericht
+- nächster Eigenkapital-Meilenstein
+- kompakter Finanzcoach-Hinweis auf dem Dashboard
 
-- ETF-Rendite ist jetzt auf der Seite „Vermögen“ sichtbar und bearbeitbar
-- drei Presets: 5 %, 7 % und 9 %
-- freie eigene Renditeannahme möglich
-- Wertzuwachs der Rentenversicherung bearbeitbar
-- Prognose mit und ohne Rendite wird gegenübergestellt
-- geschätzter Renditeeffekt wird separat angezeigt
-- Dashboard, Finanzierung, Timeline und Statistiken verwenden weiterhin dieselbe Prognose
-- Finanzierung zeigt ausdrücklich, dass die Eigenkapitalprognose die ETF-Rendite enthält
-
-Die Berechnung war technisch bereits vorhanden:
-- ETF wird monatlich verzinst und anschließend um die Sparrate erhöht
-- Rente wird monatlich mit dem eingestellten Wertzuwachs fortgeschrieben
+Datenschutz:
+- keine externe KI-Anfrage
+- keine zusätzlichen Datenübertragungen
+- alle Hinweise werden lokal aus deinem App-Datensatz berechnet
+- vorhandene Supabase-Synchronisierung bleibt unverändert
 
 Wichtig:
-Renditen sind nicht garantiert. Bei einem festen Wohnungskaufzeitpunkt können Kursschwankungen kurz vor dem Kauf relevant sein.
+Die Hinweise sind Planungsmodelle und keine persönliche Anlage-, Steuer- oder Finanzierungsberatung.
 
 Update:
 1. ZIP entpacken.
 2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 10.5 ETF-Rendite“.
+3. Commit „Version 10.5 Finanzcoach Pro“.
 4. Push origin.
 5. GitHub Actions abwarten.
-6. Unter „Vermögen“ die gewünschte Rendite einstellen.
+6. App auf PC und Handy vollständig neu laden.

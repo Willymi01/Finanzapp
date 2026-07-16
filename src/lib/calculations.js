@@ -240,3 +240,146 @@ export function monthlyReview(state) {
     remaining: milestone.remaining
   }
 }
+
+
+export function simulateAdditionalSaving(state, extraMonthly) {
+  const copy = structuredClone(state)
+  copy.monthlySavings = copy.monthlySavings.map(row =>
+    row.map(value => Number(value || 0) + Number(extraMonthly || 0))
+  )
+  const goalDate = projectedGoalDate(copy)
+  const finalValue = projection(copy).filter(x=>x.total!=null).at(-1)?.total || 0
+  return { extraMonthly:Number(extraMonthly||0), goalDate, finalValue }
+}
+
+export function returnContribution(state) {
+  const withReturns = projection(state).filter(x=>x.total!=null).at(-1)?.total || 0
+  const withoutReturns = projection({
+    ...state,
+    assumptions:{...state.assumptions,investmentReturn:0,pensionGrowth:0}
+  }).filter(x=>x.total!=null).at(-1)?.total || 0
+  return Math.max(0,withReturns-withoutReturns)
+}
+
+export function emergencyMonths(state) {
+  const monthlyCosts = fixedTotal(state)+variableTotal(state)
+  return monthlyCosts > 0 ? Number(state.assets.emergency||0)/monthlyCosts : 0
+}
+
+export function financeCoachAnalysis(state) {
+  const progress = currentGoalProgress(state)
+  const saveRate = savingsRate(state)
+  const fin = financing(state)
+  const status = planStatus(state)
+  const milestone = nextCapitalMilestone(state)
+  const returns = returnContribution(state)
+  const reserveMonths = emergencyMonths(state)
+  const projected = projection(state).filter(x=>x.total!=null).at(-1)?.total || 0
+  const current = Number(state.assets.home||0)+Number(state.assets.pension||0)
+  const insights = []
+
+  insights.push({
+    type: saveRate >= .20 ? 'good' : saveRate >= .10 ? 'neutral' : 'warn',
+    category:'Sparen',
+    title:`Sparquote ${percent(saveRate)}`,
+    text: saveRate >= .20
+      ? 'Deine rechnerische Sparquote ist stark und unterstützt dein Kaufziel.'
+      : saveRate >= .10
+        ? 'Deine Sparquote ist solide. Kleine Erhöhungen können den Zieltermin verbessern.'
+        : 'Deine Sparquote ist niedrig. Prüfe, ob Ausgaben oder Sparrate angepasst werden können.'
+  })
+
+  insights.push({
+    type: status.kind,
+    category:'Zeitplan',
+    title:status.label,
+    text: status.kind==='good'
+      ? 'Deine aktuelle Prognose passt zum geplanten Kaufzeitpunkt.'
+      : `Für den Zieltermin fehlen rechnerisch etwa ${euro(additionalMonthlyToGoal(state))} zusätzliche Monatsrate.`
+  })
+
+  insights.push({
+    type:'neutral',
+    category:'ETF',
+    title:`Renditeeffekt ca. ${euro(returns)}`,
+    text:`Bei deiner Annahme von ${percent(state.assumptions.investmentReturn)} trägt die Wertentwicklung voraussichtlich zum Endvermögen bei.`
+  })
+
+  insights.push({
+    type: fin.ratio <= .35 ? 'good' : fin.ratio <= .45 ? 'neutral' : 'warn',
+    category:'Finanzierung',
+    title:`Wohnkostenquote ${percent(fin.ratio)}`,
+    text: fin.ratio <= .35
+      ? 'Die modellierte Wohnkostenquote liegt in einem komfortableren Bereich.'
+      : fin.ratio <= .45
+        ? 'Die modellierte Wohnkostenquote ist erhöht und sollte mit einer Bank geprüft werden.'
+        : 'Die modellierte Wohnkostenquote ist hoch. Kaufpreis, Eigenkapital oder Rate sollten geprüft werden.'
+  })
+
+  insights.push({
+    type: reserveMonths >= 3 ? 'good' : reserveMonths > 0 ? 'warn' : 'warn',
+    category:'Sicherheit',
+    title: reserveMonths > 0 ? `${reserveMonths.toFixed(1)} Monatskosten Reserve` : 'Keine Notreserve eingetragen',
+    text: reserveMonths >= 3
+      ? 'Deine eingetragene Reserve deckt mindestens drei Monatsausgaben.'
+      : 'Für den Wohnungskauf wäre eine getrennte Liquiditätsreserve sinnvoll.'
+  })
+
+  insights.push({
+    type:'neutral',
+    category:'Meilenstein',
+    title:`Noch ${euro(milestone.remaining)}`,
+    text:`Bis zum nächsten Meilenstein von ${euro(milestone.target)}.`
+  })
+
+  return {
+    insights,
+    current,
+    projected,
+    progress,
+    saveRate,
+    returns,
+    reserveMonths,
+    financing:fin,
+    status,
+    milestone
+  }
+}
+
+export function coachWeeklyReport(state) {
+  const analysis=financeCoachAnalysis(state)
+  const documents=(state.documents||[]).filter(doc=>{
+    const date=new Date(doc.uploadedAt||doc.documentDate)
+    return Date.now()-date.getTime() <= 7*24*60*60*1000
+  }).length
+  const upcoming=(state.properties||[]).filter(p=>{
+    if(!p.viewingDate)return false
+    const d=new Date(p.viewingDate)
+    return d>=new Date() && d-new Date()<=7*24*60*60*1000
+  }).length
+  return {
+    title:'Wochenbericht',
+    items:[
+      `Aktuelle Sparquote: ${percent(analysis.saveRate)}`,
+      `Eigenkapitalfortschritt: ${percent(analysis.progress)}`,
+      `${documents} neue Dokumente in den letzten 7 Tagen`,
+      `${upcoming} Besichtigungstermine in den nächsten 7 Tagen`,
+      `Nächster Meilenstein: ${euro(analysis.milestone.target)}`
+    ]
+  }
+}
+
+export function coachMonthlyReport(state) {
+  const review=monthlyReview(state)
+  const analysis=financeCoachAnalysis(state)
+  return {
+    title:`Monatsbericht ${review.label}`,
+    items:[
+      `Geplante Sparrate: ${euro(review.planned)}`,
+      `Rechnerischer Überhang: ${euro(surplus(state))}`,
+      `Eigenkapital: ${euro(review.current)}`,
+      `Ziel erreicht: ${percent(review.progress)}`,
+      `Geschätzter Renditebeitrag bis zum Ziel: ${euro(analysis.returns)}`
+    ]
+  }
+}
