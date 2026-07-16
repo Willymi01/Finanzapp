@@ -1,4 +1,4 @@
-# Meine Finanzzentrale V8
+# Meine Finanzzentrale V8.1
 
 Neuaufbau mit React, Vite und modularen Komponenten.
 
@@ -42,3 +42,10 @@ npm run dev
 - Finanzdaten werden lokal oder im eigenen Supabase-Projekt gespeichert.
 - Alte Daten werden automatisch migriert.
 - JSON-Export dient als zusätzliche Sicherung.
+
+
+## Korrektur in Version 8.1
+
+Der GitHub-Workflow verwendet jetzt `npm install` statt `npm ci`.
+Dadurch ist keine bereits vorhandene `package-lock.json` erforderlich.
+Außerdem wurde der Cache entfernt, der ebenfalls eine Lock-Datei vorausgesetzt hatte.
