@@ -1,0 +1,5 @@
+import { exportState, importState } from '../lib/storage'
+export default function Settings({state,setState}) {
+ const set=(section,key,value)=>setState(s=>({...s,[section]:{...s[section],[key]:value}}))
+ return <div className="content-grid"><article className="panel span-6"><h2>Projekt</h2><div className="form-grid">{[['Projektstart','start'],['Kaufdatum','target'],['Eigenkapitalziel','goal'],['Kaufpreis','purchasePrice']].map(([l,k])=><label key={k}>{l}<input type={k.includes('start')||k.includes('target')?'date':'number'} value={state.project[k]} onChange={e=>set('project',k,e.target.type==='number'?Number(e.target.value):e.target.value)}/></label>)}</div></article><article className="panel span-6"><h2>Daten & Updates</h2><p>Version 8 übernimmt automatisch Daten aus älteren Versionen und legt vor der Migration ein Backup an.</p><div className="button-row"><button onClick={()=>exportState(state)}>JSON exportieren</button><label className="button">JSON importieren<input hidden type="file" accept=".json" onChange={async e=>setState(await importState(e.target.files[0]))}/></label></div></article></div>
+}

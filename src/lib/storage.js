@@ -1,0 +1,73 @@
+import { defaultState } from './defaultState'
+
+export const STORAGE_KEY = 'finanzzentrale'
+const LEGACY_KEYS = [
+  'finanzzentrale_v7','finanzzentrale_v60','finanzzentrale_v51',
+  'finanzzentrale_v50','finanzzentrale_v42','finanzzentrale_v41',
+  'finanzzentrale_v2','finanzzentrale'
+]
+
+const deepMerge = (base, value) => {
+  if (Array.isArray(base)) return Array.isArray(value) ? value : base
+  if (base && typeof base === 'object') {
+    const out = { ...base }
+    for (const [key, val] of Object.entries(value || {})) {
+      out[key] = key in base ? deepMerge(base[key], val) : val
+    }
+    return out
+  }
+  return value ?? base
+}
+
+const normalise = value => {
+  const merged = deepMerge(structuredClone(defaultState), value || {})
+  merged.schemaVersion = 8
+  merged.monthlySavings = Array.from({ length: 5 }, (_, year) =>
+    Array.from({ length: 12 }, (_, month) =>
+      Number(merged.monthlySavings?.[year]?.[month] ?? [300,450,600,750,900][year])
+    )
+  )
+  for (const group of ['income','fixed','variable','annualIncome','annualExpense']) {
+    merged.budget[group] = (merged.budget[group] || []).map(item => ({
+      id: item.id || crypto.randomUUID(), ...item
+    }))
+  }
+  merged.snapshots = Array.isArray(merged.snapshots) ? merged.snapshots : []
+  merged.properties = Array.isArray(merged.properties) ? merged.properties : []
+  return merged
+}
+
+export function loadState() {
+  const current = localStorage.getItem(STORAGE_KEY)
+  if (current) return normalise(JSON.parse(current))
+  for (const key of LEGACY_KEYS) {
+    const raw = localStorage.getItem(key)
+    if (!raw) continue
+    try {
+      const migrated = normalise(JSON.parse(raw))
+      localStorage.setItem(`${STORAGE_KEY}_backup_${Date.now()}`, raw)
+      saveState(migrated)
+      return migrated
+    } catch {}
+  }
+  return normalise(defaultState)
+}
+
+export function saveState(state) {
+  const updated = { ...state, schemaVersion: 8, meta: { ...state.meta, updatedAt: new Date().toISOString() } }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  return updated
+}
+
+export function exportState(state) {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `finanzzentrale-backup-${new Date().toISOString().slice(0,10)}.json`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+export async function importState(file) {
+  return normalise(JSON.parse(await file.text()))
+}
