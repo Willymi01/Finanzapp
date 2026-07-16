@@ -1,6 +1,6 @@
 import {
   Home, WalletCards, CalendarDays, TrendingUp, Landmark, Building2,
-  Cloud, Settings, Download, ListChecks, Milestone, Menu, X
+  Cloud, Settings, Download, ListChecks, Milestone, Menu, X, FolderOpen
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -13,6 +13,7 @@ const items = [
   ['financing','Finanzierung',Landmark],
   ['journey','Mein Wohnungskauf',ListChecks],
   ['properties','Wohnungen',Building2],
+  ['documents','Dokumente',FolderOpen],
   ['cloud','Cloud & Login',Cloud],
   ['settings','Einstellungen',Settings]
 ]
@@ -63,7 +64,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
     <aside className={`sidebar ${mobileOpen?'mobile-open':''}`}>
       <div className="brand">
         <div className="logo">€</div>
-        <div><strong>Finanzzentrale</strong><span>Version 10.2</span></div>
+        <div><strong>Finanzzentrale</strong><span>Version 10.3</span></div>
         <button className="drawer-close" aria-label="Menü schließen" onClick={()=>setMobileOpen(false)}>
           <X size={22}/>
         </button>

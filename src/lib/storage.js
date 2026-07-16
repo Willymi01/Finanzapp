@@ -34,6 +34,7 @@ const normalise = value => {
   }
   merged.snapshots = Array.isArray(merged.snapshots) ? merged.snapshots : []
   merged.properties = Array.isArray(merged.properties) ? merged.properties : []
+  merged.documents = Array.isArray(merged.documents) ? merged.documents : []
   return merged
 }
 

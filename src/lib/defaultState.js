@@ -45,6 +45,7 @@ export const defaultState = {
   ],
   snapshots: [],
   properties: [],
+  documents: [],
   purchaseJourney: {
     equityPrepared: false,
     financingConfirmed: false,
