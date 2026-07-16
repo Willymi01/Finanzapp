@@ -7,12 +7,13 @@ import Savings from './pages/Savings'
 import Assets from './pages/Assets'
 import Financing from './pages/Financing'
 import Properties from './pages/Properties'
+import Journey from './pages/Journey'
 import Cloud from './pages/Cloud'
 import Settings from './pages/Settings'
 import { loadState, saveState } from './lib/storage'
 import { configured, supabase } from './lib/supabase'
 
-const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',assets:'Vermögen',financing:'Finanzierung',properties:'Wohnungen',cloud:'Cloud & Login',settings:'Einstellungen'}
+const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',assets:'Vermögen',financing:'Finanzierung',journey:'Mein Wohnungskauf',properties:'Wohnungen',cloud:'Cloud & Login',settings:'Einstellungen'}
 
 export default function App(){
   const [active,setActive]=useState('dashboard')
@@ -26,7 +27,7 @@ export default function App(){
   const syncTimer=useRef(null)
 
   const setState=updater=>setStateRaw(prev=>typeof updater==='function'?updater(prev):updater)
-  useEffect(()=>{setStateRaw(prev=>saveState(prev))},[state.project,state.assumptions,state.assets,state.budget,state.monthlySavings,state.snapshots,state.properties,state.security])
+  useEffect(()=>{setStateRaw(prev=>saveState(prev))},[state.project,state.assumptions,state.assets,state.budget,state.monthlySavings,state.snapshots,state.properties,state.purchaseJourney,state.security])
   useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user?.email||null));const {data}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user?.email||null));return()=>data.subscription.unsubscribe()},[])
 
   const saveCloud=async(silent=false)=>{
@@ -49,7 +50,7 @@ export default function App(){
   }),[configured,email,password,user,autoSync,state])
 
   const props={state,setState}
-  const pages={dashboard:<Dashboard {...props}/>,budget:<Budget {...props}/>,savings:<Savings {...props}/>,assets:<Assets {...props}/>,financing:<Financing {...props}/>,properties:<Properties {...props}/>,cloud:<Cloud cloud={cloud}/>,settings:<Settings {...props} onLockChange={setLocked}/>}
+  const pages={dashboard:<Dashboard {...props}/>,budget:<Budget {...props}/>,savings:<Savings {...props}/>,assets:<Assets {...props}/>,financing:<Financing {...props}/>,journey:<Journey {...props}/>,properties:<Properties {...props}/>,cloud:<Cloud cloud={cloud}/>,settings:<Settings {...props} onLockChange={setLocked}/>}
   return <>
     {locked&&<LockScreen pinHash={state.security.pinHash} onUnlock={()=>setLocked(false)}/>}
     <Layout active={active} onNavigate={setActive} title={titles[active]} syncStatus={syncStatus}>{pages[active]}</Layout>

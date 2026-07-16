@@ -45,6 +45,15 @@ export const defaultState = {
   ],
   snapshots: [],
   properties: [],
+  purchaseJourney: {
+    equityPrepared: false,
+    financingConfirmed: false,
+    propertyFound: false,
+    documentsChecked: false,
+    contractSigned: false,
+    keysReceived: false,
+    notes: ''
+  },
   security: { pinHash: '' },
   meta: { updatedAt: null, createdAt: new Date().toISOString() },
 }

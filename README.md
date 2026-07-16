@@ -1,20 +1,23 @@
-# Meine Finanzzentrale V8.4
+# Meine Finanzzentrale V8.5
 
-Änderungen:
-- Der Sparplan beginnt beim echten Projektstart, z. B. Juli statt Januar.
-- Jeder Monat erhält ein echtes Kalenderdatum.
-- Vergangene Monate sind grau dargestellt.
-- Der aktuelle Monat ist wieder deutlich grün markiert.
-- Zukünftige Monate bleiben normal dargestellt.
-- Das Dashboard verwendet automatisch die Sparrate des tatsächlichen Projektmonats.
-- Das Dashboard zeigt Wohnungssparen, Rentenversicherung, Notgroschen und Gesamtvermögen.
-- Zwischenstände werden unter dem Eingabebereich als Historie angezeigt.
-- Wenn noch kein Zwischenstand existiert, wird das ausdrücklich erklärt.
-- Bestehende Eingaben bleiben erhalten, weil der dauerhafte Speichername unverändert bleibt.
+Neu umgesetzt – die Optik des Finanzplans bleibt unverändert:
+
+- erweitertes Dashboard mit Sparziel, Einkommen, Restmonaten und Finanzierung
+- automatische zusätzliche Monatsrate zur Schließung einer möglichen Ziellücke
+- Vermögens- und Finanzierungsübersicht auf dem Dashboard
+- neuer Bereich „Mein Wohnungskauf“ mit sechs abhakebaren Meilensteinen
+- Live-Finanzierungsrechner mit Schiebereglern
+- Kaufnebenkosten-Aufteilung
+- drei Kaufpreis-Szenarien im Vergleich
+- erweitertes Wohnungscockpit
+- Wohnungsbilder als lokale Datei
+- Wohnfläche, Zimmer, Energieklasse, KfW, Exposé-Link und Notizen
+- bestehende Daten werden durch die unveränderte Speicherstruktur übernommen
 
 Update:
 1. ZIP entpacken.
-2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. GitHub Desktop: Commit `Version 8.4 Datum und Monatsmarkierung`.
-4. Push origin.
-5. Warten, bis GitHub Actions grün ist.
+2. Alle Dateien in den lokalen Repository-Ordner kopieren.
+3. Bestehende Dateien ersetzen.
+4. GitHub Desktop: Commit „Version 8.5 Ausbau“.
+5. Push origin.
+6. GitHub Actions abwarten.
