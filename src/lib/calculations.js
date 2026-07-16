@@ -154,3 +154,89 @@ export function coachMessages(state) {
 
   return messages
 }
+
+
+export function budgetBreakdown(state) {
+  const groups = {
+    Wohnen: 0,
+    Auto: 0,
+    Versicherungen: 0,
+    Lebensmittel: 0,
+    Freizeit: 0,
+    Kommunikation: 0,
+    Vorsorge: 0,
+    Sonstiges: 0
+  }
+  const classify = name => {
+    const n = String(name || '').toLowerCase()
+    if (/miete|strom|heiz|gez|hausgeld|internet|kabel/.test(n)) return /internet|kabel/.test(n) ? 'Kommunikation' : 'Wohnen'
+    if (/auto|kfz|benzin|inspektion/.test(n)) return 'Auto'
+    if (/versicherung|haftpflicht|hausrat/.test(n)) return 'Versicherungen'
+    if (/lebensmittel/.test(n)) return 'Lebensmittel'
+    if (/freizeit|fitness|lotto/.test(n)) return 'Freizeit'
+    if (/handy/.test(n)) return 'Kommunikation'
+    if (/rente|vorsorge|zahn/.test(n)) return 'Vorsorge'
+    return 'Sonstiges'
+  }
+  state.budget.fixed.forEach(item => {
+    groups[classify(item.name)] += Number(item.cost || 0) / Math.max(1, Number(item.factor || 1))
+  })
+  state.budget.variable.forEach(item => {
+    groups[classify(item.name)] += Number(item.amount || 0)
+  })
+  return Object.entries(groups)
+    .map(([label,value]) => ({label,value}))
+    .filter(x => x.value > 0)
+    .sort((a,b) => b.value-a.value)
+}
+
+export function annualStatistics(state) {
+  const rows = projection(state)
+  const start = new Date(`${state.project.start}T12:00:00`)
+  return Array.from({length:5},(_,year)=>{
+    const end = rows[(year+1)*12-1]
+    const startRow = year===0 ? null : rows[year*12-1]
+    const planned = state.monthlySavings[year].reduce((a,b)=>a+Number(b||0),0) + Number(state.assumptions.specialAnnual||0)
+    const value = end?.total || 0
+    const prior = startRow?.total ?? (Number(state.assets.home||0)+Number(state.assets.pension||0))
+    const gain = Math.max(0,value-prior-planned)
+    const income = incomeTotal(state)*12*Math.pow(1+state.assumptions.salaryGrowth,year)
+    return {
+      year: start.getFullYear()+year,
+      planned,
+      value,
+      growth: gain,
+      savingsRate: income>0 ? planned/income : 0
+    }
+  })
+}
+
+export function monthlyActualSeries(state) {
+  const points = []
+  const start = new Date(`${state.project.start}T12:00:00`)
+  const base = Number(state.assets.home||0)+Number(state.assets.pension||0)
+  points.push({date:start,total:base,type:'start'})
+  ;(state.snapshots||[]).forEach(s=>points.push({
+    date:new Date(`${s.date}T12:00:00`),
+    total:Number(s.home||0)+Number(s.pension||0),
+    type:'actual'
+  }))
+  return points.sort((a,b)=>a.date-b.date)
+}
+
+export function monthlyReview(state) {
+  const now = new Date()
+  const planned = plannedSavingForDate(state,now)
+  const current = Number(state.assets.home||0)+Number(state.assets.pension||0)
+  const progress = state.project.goal>0 ? current/state.project.goal : 0
+  const milestone = nextCapitalMilestone(state)
+  return {
+    label: now.toLocaleDateString('de-DE',{month:'long',year:'numeric'}),
+    planned,
+    savingsRate: savingsRate(state),
+    current,
+    progress,
+    nextMilestone: milestone.target,
+    remaining: milestone.remaining
+  }
+}
