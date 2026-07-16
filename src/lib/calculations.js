@@ -68,3 +68,32 @@ export function financing(state) {
   const housing = rate + state.assumptions.ownerCosts + state.assumptions.maintenance
   return { equity, ancillary, usable, need, kfw, bank, rate, targetNet, housing, ratio: housing / targetNet }
 }
+
+
+export function targetDateForAmount(state, targetAmount) {
+  const row = projection(state).find(x => x.total != null && x.total >= targetAmount)
+  return row?.date || null
+}
+
+export function projectedGoalDate(state) {
+  return targetDateForAmount(state, state.project.goal)
+}
+
+export function additionalMonthlyToGoal(state) {
+  const end = new Date(`${state.project.target}T12:00:00`)
+  const now = new Date()
+  const months = Math.max(1, (end.getFullYear()-now.getFullYear())*12 + end.getMonth()-now.getMonth())
+  const final = projection(state).filter(x=>x.total!=null).at(-1)?.total || 0
+  return Math.max(0, state.project.goal-final) / months
+}
+
+export function timelineMilestones(state) {
+  const targets = [
+    { label:'25.000 € Eigenkapital', amount:25000 },
+    { label:'50 % des Sparziels', amount:state.project.goal*.5 },
+    { label:'Kaufnebenkosten erreicht', amount:state.project.purchasePrice*state.project.ancillaryRate },
+    { label:'75 % des Sparziels', amount:state.project.goal*.75 },
+    { label:'Eigenkapitalziel erreicht', amount:state.project.goal },
+  ]
+  return targets.map(item => ({...item, date: targetDateForAmount(state,item.amount)}))
+}

@@ -36,7 +36,18 @@ export default function Assets({state,setState}) {
         <p className="note">Der Notgroschen war bisher nur ein voreingestellter Planwert von 5.000 €. Er ist kein berechneter Kontostand.</p>
       </Panel>
 
-      <Panel title="Vermögensprognose" subtitle="Wohnungssparen und Rentenwert bis zum Kaufzeitpunkt" className="span-7">
+      <Panel title="Vermögensaufteilung" subtitle="Aktuelle Verteilung deines Gesamtvermögens" className="span-7">
+        <div className="asset-bars">
+          {[['Wohnungssparen',state.assets.home],['Rentenversicherung',state.assets.pension],['Notgroschen',state.assets.emergency]].map(([label,value])=>
+            <div className="asset-bar-row" key={label}>
+              <div><span>{label}</span><b>{euro(value)}</b></div>
+              <div className="asset-bar"><i style={{width:`${total?Math.min(100,value/total*100):0}%`}}/></div>
+            </div>
+          )}
+        </div>
+      </Panel>
+
+      <Panel title="Vermögensprognose" subtitle="Wohnungssparen und Rentenwert bis zum Kaufzeitpunkt" className="span-12">
         <SimpleChart values={vals} goal={state.project.goal}/>
       </Panel>
     </div>

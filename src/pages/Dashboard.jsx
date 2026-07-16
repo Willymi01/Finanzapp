@@ -1,6 +1,6 @@
 import { MetricCard, Panel } from '../components/Cards'
 import SimpleChart from '../components/SimpleChart'
-import { euro, percent, projection, financing, surplus, plannedSavingForDate, projectMonthIndex } from '../lib/calculations'
+import { euro, percent, projection, financing, surplus, plannedSavingForDate, projectMonthIndex, projectedGoalDate } from '../lib/calculations'
 
 const monthsUntil=(target)=>{
   const now=new Date(), end=new Date(`${target}T12:00:00`)
@@ -22,6 +22,7 @@ export default function Dashboard({ state }) {
       : `Sparjahr ${Math.floor(index/12)+1}, Monat ${index%12+1}`
   const years = Array.from({length:5},(_,i)=>plan[(i+1)*12-1]?.total||0)
   const requiredExtra = monthsUntil(state.project.target)>0 ? gap/monthsUntil(state.project.target) : gap
+  const goalDate = projectedGoalDate(state)
   const completedJourney = Object.entries(state.purchaseJourney||{}).filter(([key,value])=>key!=='notes'&&value===true).length
 
   return <>
@@ -71,6 +72,14 @@ export default function Dashboard({ state }) {
           {['Eigenkapital','Finanzierung','Wohnung','Unterlagen','Kaufvertrag','Schlüssel'].map((label,i)=>
             <div key={label} className={i<completedJourney?'done':''}><i>{i<completedJourney?'✓':i+1}</i><span>{label}</span></div>
           )}
+        </div>
+      </Panel>
+
+      <Panel title="Sparziel-Prognose" subtitle="Automatisch aus deinem aktuellen Plan" className="span-12">
+        <div className="smart-insights">
+          <div><span>Geplanter Zieltermin</span><b>{new Date(`${state.project.target}T12:00:00`).toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</b></div>
+          <div><span>Prognose Eigenkapitalziel</span><b>{goalDate?goalDate.toLocaleDateString('de-DE',{month:'long',year:'numeric'}):'Später als geplant'}</b></div>
+          <div><span>Status</span><b className={goalDate&&goalDate<=new Date(`${state.project.target}T12:00:00`)?'good-value':'warning-value'}>{goalDate&&goalDate<=new Date(`${state.project.target}T12:00:00`)?'Im Plan':'Zusätzliche Sparrate nötig'}</b></div>
         </div>
       </Panel>
 
