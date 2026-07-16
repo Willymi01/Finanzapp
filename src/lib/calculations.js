@@ -11,7 +11,21 @@ export const fixedTotal = state => state.budget.fixed.reduce((s,x) => s + Number
 export const variableTotal = state => state.budget.variable.reduce((s,x) => s + Number(x.amount || 0), 0)
 export const surplus = state => incomeTotal(state) - fixedTotal(state) - variableTotal(state)
 
-const addMonths = (date, n) => new Date(date.getFullYear(), date.getMonth() + n, 1)
+export const addMonths = (date, n) => new Date(date.getFullYear(), date.getMonth() + n, 1)
+
+export const monthStart = date => new Date(date.getFullYear(), date.getMonth(), 1)
+
+export const projectMonthIndex = (state, date = new Date()) => {
+  const start = monthStart(new Date(`${state.project.start}T12:00:00`))
+  const current = monthStart(date)
+  return (current.getFullYear() - start.getFullYear()) * 12 + current.getMonth() - start.getMonth()
+}
+
+export const plannedSavingForDate = (state, date = new Date()) => {
+  const index = projectMonthIndex(state, date)
+  if (index < 0 || index >= 60) return 0
+  return Number(state.monthlySavings[Math.floor(index / 12)]?.[index % 12] || 0)
+}
 
 export function projection(state) {
   const start = new Date(`${state.project.start}T12:00:00`)

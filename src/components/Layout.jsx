@@ -17,7 +17,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
   const install=async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;setInstallPrompt(null)}
   return <div className="app-shell">
     <aside className="sidebar">
-      <div className="brand"><div className="logo">€</div><div><strong>Finanzzentrale</strong><span>Version 8.2</span></div></div>
+      <div className="brand"><div className="logo">€</div><div><strong>Finanzzentrale</strong><span>Version 8.4</span></div></div>
       <nav>{items.map(([key,label,Icon]) => <button key={key} className={active===key?'active':''} onClick={()=>onNavigate(key)}><Icon size={19}/><span>{label}</span></button>)}</nav>
       <div className="sidebar-bottom">
         {installPrompt&&<button className="install-button" onClick={install}><Download size={17}/><span>App installieren</span></button>}
