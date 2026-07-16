@@ -1,24 +1,24 @@
-# Meine Finanzzentrale V9.1 – Mobile Seitenleiste
+# Meine Finanzzentrale V10.1 – Dashboard Pro
 
-Verbesserungen für Smartphones:
+Neu:
+- persönliche Begrüßung nach Tageszeit
+- großer Fortschrittsring für das Eigenkapitalziel
+- Countdown in Monaten bis zum geplanten Wohnungskauf
+- neue Kennzahlen für Eigenkapital, Einkommen, Sparquote und Planstatus
+- automatische Anzeige: im Plan, voraus oder hinter dem Plan
+- intelligenter Finanzcoach mit mehreren Hinweisen
+- nächster Eigenkapital-Meilenstein
+- Vermögensaufteilung als Balkendiagramme
+- kompakter Finanzierungsblick
+- Wohnungskauf-Fortschritt direkt auf dem Dashboard
+- optimierte Darstellung auf Handy und PC
 
-- die kleine untere Navigation wurde durch ein aufklappbares Seitenmenü ersetzt
-- Menübutton oben links
-- alle Seiten werden mit Icon und vollständigem Namen angezeigt
-- aktive Seite ist deutlich grün markiert
-- Menü schließt sich nach Auswahl automatisch
-- dunkler Hintergrund hinter dem geöffneten Menü
-- Cloud-Synchronisierungsstatus auch im Menü
-- Installationsbutton im Seitenmenü
-- bessere Abstände und größere Touch-Flächen
-- Unterstützung der sicheren Bildschirmränder moderner Smartphones
-
-Bestehende Daten, Cloud-Synchronisierung, Timeline und Finanzplan bleiben unverändert.
+Alle bisherigen Funktionen, Daten, Cloud, Timeline, Backups und der Finanzplan bleiben erhalten.
 
 Update:
 1. ZIP entpacken.
 2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 9.1 Mobile Menü“.
+3. Commit „Version 10.1 Dashboard Pro“.
 4. Push origin.
 5. GitHub Actions abwarten.
-6. Auf dem Handy die App vollständig schließen und neu öffnen.
+6. App auf PC und Handy vollständig neu laden.

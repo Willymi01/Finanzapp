@@ -97,3 +97,60 @@ export function timelineMilestones(state) {
   ]
   return targets.map(item => ({...item, date: targetDateForAmount(state,item.amount)}))
 }
+
+
+export function monthsUntilDate(dateString) {
+  const now = new Date()
+  const target = new Date(`${dateString}T12:00:00`)
+  return Math.max(0, (target.getFullYear()-now.getFullYear())*12 + target.getMonth()-now.getMonth())
+}
+
+export function savingsRate(state) {
+  const income = incomeTotal(state)
+  return income > 0 ? Math.max(0, surplus(state)) / income : 0
+}
+
+export function currentGoalProgress(state) {
+  const current = Number(state.assets.home||0) + Number(state.assets.pension||0)
+  return state.project.goal > 0 ? current / state.project.goal : 0
+}
+
+export function nextCapitalMilestone(state) {
+  const current = Number(state.assets.home||0) + Number(state.assets.pension||0)
+  const steps = [25000, 50000, state.project.goal*.75, state.project.goal]
+    .filter((value,index,array)=>value>current && array.indexOf(value)===index)
+    .sort((a,b)=>a-b)
+  const target = steps[0] || state.project.goal
+  return { target, remaining: Math.max(0,target-current) }
+}
+
+export function planStatus(state) {
+  const goalDate = projectedGoalDate(state)
+  const target = new Date(`${state.project.target}T12:00:00`)
+  if (!goalDate) return { label:'Hinter dem Plan', kind:'warn', months:null }
+  const diff = (goalDate.getFullYear()-target.getFullYear())*12 + goalDate.getMonth()-target.getMonth()
+  if (diff < 0) return { label:`${Math.abs(diff)} Monate voraus`, kind:'good', months:diff }
+  if (diff === 0) return { label:'Genau im Plan', kind:'good', months:0 }
+  return { label:`${diff} Monate hinter Plan`, kind:'warn', months:diff }
+}
+
+export function coachMessages(state) {
+  const messages = []
+  const rate = savingsRate(state)
+  const status = planStatus(state)
+  const extra = additionalMonthlyToGoal(state)
+  const monthSaving = plannedSavingForDate(state)
+  const milestone = nextCapitalMilestone(state)
+
+  if (rate >= .20) messages.push({type:'good',title:'Starke Sparquote',text:`Aktuell sparst du rechnerisch ${percent(rate)} deines Einkommens.`})
+  else if (rate >= .10) messages.push({type:'neutral',title:'Solide Sparquote',text:`Deine aktuelle Sparquote liegt bei ${percent(rate)}.`})
+  else messages.push({type:'warn',title:'Sparquote prüfen',text:`Deine aktuelle Sparquote liegt bei ${percent(rate)}.`})
+
+  if (status.kind === 'good') messages.push({type:'good',title:'Zeitplan',text:`Du bist ${status.label.toLowerCase()}.`})
+  else messages.push({type:'warn',title:'Zeitplan',text:extra>0?`Mit zusätzlich etwa ${euro(extra)} monatlich würdest du die Ziellücke schließen.`:'Dein Zieltermin sollte überprüft werden.'})
+
+  messages.push({type:'neutral',title:'Dieser Monat',text:`Geplant sind ${euro(monthSaving)} Sparrate.`})
+  messages.push({type:'neutral',title:'Nächster Meilenstein',text:`Noch ${euro(milestone.remaining)} bis ${euro(milestone.target)}.`})
+
+  return messages
+}

@@ -63,7 +63,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
     <aside className={`sidebar ${mobileOpen?'mobile-open':''}`}>
       <div className="brand">
         <div className="logo">€</div>
-        <div><strong>Finanzzentrale</strong><span>Version 9.1</span></div>
+        <div><strong>Finanzzentrale</strong><span>Version 10.1</span></div>
         <button className="drawer-close" aria-label="Menü schließen" onClick={()=>setMobileOpen(false)}>
           <X size={22}/>
         </button>
