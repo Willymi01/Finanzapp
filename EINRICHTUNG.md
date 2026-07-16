@@ -1,27 +1,18 @@
-# Einrichtung: GitHub Pages + Cloud-Synchronisierung
+# Finanzzentrale V7 auf GitHub Pages aktualisieren
 
-## 1. GitHub Pages
+1. ZIP entpacken.
+2. Alle enthaltenen Dateien in deinen lokalen GitHub-Repository-Ordner kopieren.
+3. Vorhandene Dateien ersetzen.
+4. GitHub Desktop öffnen.
+5. Commit-Text z. B. `Version 7.0`.
+6. **Commit to main** und danach **Push origin**.
+7. Nach 1–3 Minuten die Seite neu laden.
 
-1. Erstelle auf GitHub ein Repository, zum Beispiel `finanzzentrale`.
-2. Lade **den Inhalt dieses Ordners** hoch, nicht die ZIP-Datei.
-3. Öffne im Repository **Settings → Pages**.
-4. Wähle **Deploy from a branch**.
-5. Branch: `main`, Ordner: `/ (root)`.
-6. Nach kurzer Wartezeit erreichst du die App unter  
-   `https://DEIN-NAME.github.io/finanzzentrale/`.
+## Cloud einrichten
 
-GitHub Pages veröffentlicht nur die App-Dateien. Trage keine echten Finanzdaten fest in Dateien des Repositories ein.
+Die vorhandene Supabase-Einrichtung aus V6 kann weiterverwendet werden.
 
-## 2. Supabase-Projekt anlegen
-
-1. Erstelle ein kostenloses Projekt bei Supabase.
-2. Öffne den **SQL Editor**.
-3. Führe den Inhalt von `supabase-setup.sql` aus.
-4. Öffne **Project Settings → API**.
-5. Kopiere:
-   - Project URL
-   - öffentlichen `anon` / `publishable` key
-6. Öffne `config.js` und trage beide Werte ein:
+In `config.js` eintragen:
 
 ```js
 window.FINANCE_CLOUD_CONFIG = {
@@ -30,26 +21,12 @@ window.FINANCE_CLOUD_CONFIG = {
 };
 ```
 
-**Niemals einen Service-Role-Key in die App eintragen.**
+Nur den öffentlichen Anon-/Publishable-Key verwenden, niemals den Service-Role-Key.
 
-## 3. Anmeldung
+## Sicherheit
 
-1. Lade die geänderte `config.js` wieder zu GitHub hoch.
-2. Öffne die veröffentlichte App.
-3. Wechsle zu **Cloud & Login**.
-4. Lege mit E-Mail und Passwort ein Konto an.
-5. Speichere den Datenstand mit **Jetzt in Cloud speichern**.
-6. Öffne die App auf dem Handy, melde dich an und wähle **Aus Cloud laden**.
-7. Optional: **Automatisch synchronisieren** aktivieren.
-
-## 4. Auf dem Handy installieren
-
-- **Android/Chrome:** Menü → „App installieren“ oder „Zum Startbildschirm hinzufügen“.
-- **iPhone/Safari:** Teilen → „Zum Home-Bildschirm“.
-
-## Datenschutz
-
-- Der GitHub-Pages-Code ist öffentlich, wenn das Repository öffentlich ist.
-- Finanzdaten werden nicht in GitHub gespeichert.
-- Cloud-Daten liegen in deinem Supabase-Projekt.
-- Row Level Security sorgt dafür, dass ein angemeldeter Benutzer nur seinen eigenen Datensatz lesen und ändern darf.
+- GitHub Pages veröffentlicht nur den Programmcode.
+- Finanzwerte stehen nicht fest im Repository, sondern werden im Browser oder nach Anmeldung in Supabase gespeichert.
+- Die optionale lokale PIN ist nur eine Bildschirmsperre.
+- Der eigentliche Cloud-Schutz besteht aus Supabase-Login plus Row Level Security.
+- Dokumentenupload ist bewusst noch nicht enthalten.
