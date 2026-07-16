@@ -52,7 +52,7 @@ export default function Financing({state,setState}) {
     </div>
    </Panel>
 
-   <Panel title="Aktuelles Ergebnis" className="span-7">
+   <Panel title="Aktuelles Ergebnis" subtitle={`Eigenkapitalprognose inkl. ${(state.assumptions.investmentReturn*100).toFixed(1)} % ETF-Rendite`} className="span-7">
     <div className="result-grid">
       {[['Eigenkapital am Ziel',f.equity],['Einsetzbares Eigenkapital',f.usable],['Finanzierungsbedarf',f.need],['KfW',f.kfw],['Bankdarlehen',f.bank],['Kreditrate',f.rate],['Gesamt-Wohnkosten',f.housing],['Wohnkostenquote',percent(f.ratio)]].map(([l,v])=><div className="result" key={l}><span>{l}</span><strong>{typeof v==='string'?v:euro(v)}</strong></div>)}
     </div>
