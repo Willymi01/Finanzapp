@@ -71,3 +71,44 @@ export function exportState(state) {
 export async function importState(file) {
   return normalise(JSON.parse(await file.text()))
 }
+
+
+export const BACKUP_INDEX_KEY = 'finanzzentrale_backup_index'
+const MAX_BACKUPS = 12
+
+export function createLocalBackup(state, reason='Manuelle Sicherung') {
+  const id = `finanzzentrale_backup_${Date.now()}`
+  const entry = {
+    id,
+    reason,
+    createdAt: new Date().toISOString(),
+    schemaVersion: state.schemaVersion || 8
+  }
+  localStorage.setItem(id, JSON.stringify(state))
+  const index = JSON.parse(localStorage.getItem(BACKUP_INDEX_KEY) || '[]')
+  const next = [entry, ...index].slice(0, MAX_BACKUPS)
+  for (const old of index.slice(MAX_BACKUPS - 1)) localStorage.removeItem(old.id)
+  localStorage.setItem(BACKUP_INDEX_KEY, JSON.stringify(next))
+  return entry
+}
+
+export function listLocalBackups() {
+  return JSON.parse(localStorage.getItem(BACKUP_INDEX_KEY) || '[]')
+}
+
+export function restoreLocalBackup(id) {
+  const raw = localStorage.getItem(id)
+  if (!raw) throw new Error('Sicherung nicht gefunden.')
+  return normalise(JSON.parse(raw))
+}
+
+export function deleteLocalBackup(id) {
+  localStorage.removeItem(id)
+  const index = listLocalBackups().filter(x => x.id !== id)
+  localStorage.setItem(BACKUP_INDEX_KEY, JSON.stringify(index))
+}
+
+export function clearLocalBackups() {
+  for (const entry of listLocalBackups()) localStorage.removeItem(entry.id)
+  localStorage.removeItem(BACKUP_INDEX_KEY)
+}

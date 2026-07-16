@@ -1,15 +1,18 @@
-# Meine Finanzzentrale V8.6
+# Meine Finanzzentrale V8.7 – Backup-Zentrale
 
-Korrektur:
-- Der Notgroschen war bisher ein voreingestellter Startwert von 5.000 €.
-- Auf der Vermögensseite können Wohnungssparen, Rentenwert und Notgroschen jetzt direkt bearbeitet werden.
-- Es gibt einen Button „Notgroschen auf 0 € setzen“.
-- Bei neuen Installationen startet der Notgroschen künftig mit 0 €.
-- Bestehende Daten bleiben erhalten; deshalb muss der vorhandene 5.000-€-Wert einmal auf 0 gesetzt werden.
+Neu:
+- eigener Backup-Bereich unter Einstellungen
+- JSON-Export für OneDrive, USB-Stick und neue Geräte
+- JSON-Import mit Sicherheitsabfrage
+- bis zu 12 lokale Wiederherstellungspunkte
+- Wiederherstellung und Löschen einzelner Sicherungen
+- automatische lokale Sicherung vor einem JSON-Import
+- automatische lokale Sicherung vor dem Laden eines Cloud-Stands
+- empfohlene Sicherungsroutine direkt in der App
 
 Update:
 1. ZIP entpacken.
 2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 8.6 Vermögen editierbar“.
+3. Commit „Version 8.7 Backup-Zentrale“.
 4. Push origin.
-5. Nach erfolgreichem Build unter Vermögen den Notgroschen auf 0 € setzen.
+5. Nach grünem Workflow unter Einstellungen die Backup-Zentrale öffnen.

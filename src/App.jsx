@@ -10,7 +10,7 @@ import Properties from './pages/Properties'
 import Journey from './pages/Journey'
 import Cloud from './pages/Cloud'
 import Settings from './pages/Settings'
-import { loadState, saveState } from './lib/storage'
+import { loadState, saveState, createLocalBackup } from './lib/storage'
 import { configured, supabase } from './lib/supabase'
 
 const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',assets:'Vermögen',financing:'Finanzierung',journey:'Mein Wohnungskauf',properties:'Wohnungen',cloud:'Cloud & Login',settings:'Einstellungen'}
@@ -46,7 +46,7 @@ export default function App(){
     signUp:async()=>{if(!configured)return alert('Supabase nicht eingerichtet.');const {error}=await supabase.auth.signUp({email,password});alert(error?error.message:'Konto angelegt. Bitte ggf. E-Mail bestätigen.')},
     signOut:async()=>configured&&supabase.auth.signOut(),
     save:()=>saveCloud(false),
-    load:async()=>{if(!configured||!user)return alert('Bitte anmelden.');const {data:{user:u}}=await supabase.auth.getUser();const {data,error}=await supabase.from('finance_profiles').select('app_state').eq('user_id',u.id).maybeSingle();if(error)return alert(error.message);if(data&&confirm('Lokale Daten durch Cloud-Stand ersetzen?'))setState(data.app_state)}
+    load:async()=>{if(!configured||!user)return alert('Bitte anmelden.');const {data:{user:u}}=await supabase.auth.getUser();const {data,error}=await supabase.from('finance_profiles').select('app_state').eq('user_id',u.id).maybeSingle();if(error)return alert(error.message);if(data&&confirm('Lokale Daten durch Cloud-Stand ersetzen?')){createLocalBackup(state,'Vor Cloud-Wiederherstellung');setState(data.app_state)}}
   }),[configured,email,password,user,autoSync,state])
 
   const props={state,setState}
