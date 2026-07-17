@@ -1,5 +1,14 @@
+import { useState } from 'react'
 import { Panel } from '../components/Cards'
 import { addMonths, euro, monthStart, totalSpecialPayments } from '../lib/calculations'
+
+const MobileSection=({title,subtitle,defaultOpen=false,children})=>{
+  const [open,setOpen]=useState(defaultOpen)
+  return <details className="mobile-section" open={open} onToggle={event=>setOpen(event.currentTarget.open)}>
+    <summary><div><b>{title}</b><span>{subtitle}</span></div><i>⌄</i></summary>
+    <div className="mobile-section-body">{children}</div>
+  </details>
+}
 
 const monthsLong=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 
@@ -67,6 +76,7 @@ export default function Savings({ state, setState }) {
   const payments=[...(state.specialPayments||[])].sort((a,b)=>a.year-b.year||a.month-b.month)
 
   return <>
+    <MobileSection title="Monatliche Sparraten" subtitle="5-Jahres-Sparplan" defaultOpen>
     <Panel title="Monatliche Sparraten" subtitle={`Projektstart ${start.toLocaleDateString('de-DE',{month:'long',year:'numeric'})} · der aktuelle Monat ist grün markiert`}>
       <div className="savings-legend">
         <span><i className="legend past-legend"/>Vergangen</span>
@@ -124,7 +134,9 @@ export default function Savings({ state, setState }) {
         </table>
       </div>
     </Panel>
+    </MobileSection>
 
+    <MobileSection title="Sonderzahlungen" subtitle={`Geplant ${euro(totalSpecialPayments(state))}`}>
     <Panel title="Sonderzahlungen" subtitle={`Geplant insgesamt ${euro(totalSpecialPayments(state))}`}
       action={<button onClick={addSpecialPayment}>+ Sonderzahlung</button>}>
       <p className="note">Sonderzahlungen werden im gewählten Monat eingerechnet. ETF-Zahlungen wachsen danach mit deiner Renditeannahme weiter.</p>
@@ -149,7 +161,9 @@ export default function Savings({ state, setState }) {
         </table></div>
       }
     </Panel>
+    </MobileSection>
 
+    <MobileSection title="Zwischenstände" subtitle="Ist-Werte übernehmen">
     <Panel title="Zwischenstand übernehmen" subtitle="Ab dem Stichtag rechnet die Prognose mit deinen echten Ist-Werten weiter">
       <div className="form-grid four">
         <label>Stichtag<input id="snap-date" type="date" defaultValue={new Date().toISOString().slice(0,10)}/></label>
@@ -176,5 +190,6 @@ export default function Savings({ state, setState }) {
         }
       </div>
     </Panel>
+    </MobileSection>
   </>
 }

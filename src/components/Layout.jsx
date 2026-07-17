@@ -1,6 +1,6 @@
 import {
   Home, WalletCards, CalendarDays, TrendingUp, Landmark, Building2,
-  Cloud, Settings, Download, ListChecks, Milestone, Menu, X, FolderOpen, BarChart3, BrainCircuit
+  Cloud, Settings, Download, ListChecks, Milestone, Menu, X, FolderOpen, BarChart3, BrainCircuit, Plus, Camera, FilePlus2
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -23,6 +23,7 @@ const items = [
 export default function Layout({ active, onNavigate, title, children, syncStatus }) {
   const [installPrompt,setInstallPrompt]=useState(null)
   const [mobileOpen,setMobileOpen]=useState(false)
+  const [quickOpen,setQuickOpen]=useState(false)
 
   useEffect(()=>{
     const handler=e=>{e.preventDefault();setInstallPrompt(e)}
@@ -39,9 +40,9 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
   },[])
 
   useEffect(()=>{
-    document.body.classList.toggle('menu-open',mobileOpen)
+    document.body.classList.toggle('menu-open',mobileOpen||quickOpen)
     return()=>document.body.classList.remove('menu-open')
-  },[mobileOpen])
+  },[mobileOpen,quickOpen])
 
   const install=async()=>{
     if(!installPrompt)return
@@ -66,7 +67,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
     <aside className={`sidebar ${mobileOpen?'mobile-open':''}`}>
       <div className="brand">
         <div className="logo">€</div>
-        <div><strong>Finanzzentrale</strong><span>Version 10.6.1</span></div>
+        <div><strong>Finanzzentrale</strong><span>Version 10.7</span></div>
         <button className="drawer-close" aria-label="Menü schließen" onClick={()=>setMobileOpen(false)}>
           <X size={22}/>
         </button>
@@ -111,5 +112,18 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
       </header>
       <section className="page">{children}</section>
     </main>
+    <div className={`quick-actions ${quickOpen?'open':''}`}>
+      <button className="quick-backdrop" aria-label="Schnellaktionen schließen" onClick={()=>setQuickOpen(false)}/>
+      <div className="quick-menu" aria-hidden={!quickOpen}>
+        <button onClick={()=>{navigate('savings');setQuickOpen(false)}}><Plus size={18}/><span>Sonderzahlung</span></button>
+        <button onClick={()=>{navigate('savings');setQuickOpen(false)}}><Camera size={18}/><span>Zwischenstand</span></button>
+        <button onClick={()=>{navigate('documents');setQuickOpen(false)}}><FilePlus2 size={18}/><span>Dokument</span></button>
+        <button onClick={()=>{navigate('properties');setQuickOpen(false)}}><Building2 size={18}/><span>Wohnung</span></button>
+      </div>
+      <button className="quick-fab" aria-label="Schnellaktionen öffnen" aria-expanded={quickOpen} onClick={()=>setQuickOpen(v=>!v)}>
+        {quickOpen?<X size={25}/>:<Plus size={27}/>} 
+      </button>
+    </div>
+
   </div>
 }

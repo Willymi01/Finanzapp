@@ -277,3 +277,86 @@
 
 /* Version 10.6.1: konsistente Jahressummen inklusive Sonderzahlungen */
 .year-total-cell small{display:block;margin-top:4px;color:var(--muted);font-size:9px;white-space:nowrap}
+
+
+/* Version 10.7 – Mobile & UX Edition */
+:root{--touch:48px}
+button,input,select,textarea{touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid rgba(146,208,80,.38);outline-offset:2px}
+.sidebar nav button,.panel,.pro-kpi,.metric-card{transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}
+@media(hover:hover){.sidebar nav button:hover{background:#171f26;color:var(--text)}.panel:hover{border-color:#3a4653}.pro-kpi:hover,.metric-card:hover{transform:translateY(-2px)}}
+
+/* Desktop: mobile wrappers are visually transparent. */
+.mobile-section{display:contents}.mobile-section>summary{display:none}.mobile-section-body{display:contents}
+
+/* Quick actions are mobile-only. */
+.quick-actions{display:none}
+
+@media(max-width:800px){
+  html{scroll-padding-top:78px}
+  body{-webkit-tap-highlight-color:transparent}
+  button,.button,input,select,textarea{min-height:var(--touch);font-size:16px}
+  button,.button{padding:11px 14px}
+  label{font-size:13px;gap:8px}
+  input,select,textarea{border-radius:11px;padding:12px}
+
+  .topbar{box-shadow:0 8px 24px rgba(0,0,0,.18)}
+  .mobile-title-row{min-width:0}.mobile-title-row>div{min-width:0}
+  .topbar h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sync-badge{max-width:112px;overflow:hidden;text-overflow:ellipsis}
+
+  .page{padding-bottom:96px}
+  .panel{padding:16px;border-radius:15px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  .panel-head{align-items:flex-start;gap:12px}.panel-head>div{min-width:0}
+  .panel-head p{margin:4px 0 0;font-size:12px;line-height:1.45}
+  .panel h2{font-size:18px}
+
+  .content-grid{gap:12px}.pro-kpi-grid,.metric-grid,.summary-grid{gap:11px}
+  .pro-kpi{min-height:0;padding:16px}.pro-kpi strong{font-size:25px;margin:8px 0 4px}
+  .pro-hero{margin-bottom:12px;border-radius:17px}
+  .pro-greeting p{line-height:1.5}
+
+  .table-wrap{margin-inline:-4px;padding:0 4px 5px;scrollbar-width:thin;overscroll-behavior-inline:contain}
+  .table-wrap:after{content:"Seitlich wischen →";display:block;position:sticky;left:0;width:max-content;margin:7px 0 0;color:var(--muted);font-size:10px}
+  th,td{padding:10px 8px}
+  table input,table select{min-height:44px}
+
+  .button-row{display:grid;grid-template-columns:1fr}.button-row>*{width:100%}
+  .form-grid,.form-grid.four,.result-grid,.property-grid{gap:11px}
+
+  /* Mobile accordion: the first savings section opens by default, the rest stay compact. */
+  .mobile-section{display:block;margin-bottom:12px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--surface),var(--surface2));overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  .mobile-section>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:66px;padding:13px 15px;cursor:pointer;list-style:none}
+  .mobile-section>summary::-webkit-details-marker{display:none}
+  .mobile-section>summary div{min-width:0}.mobile-section>summary b,.mobile-section>summary span{display:block}
+  .mobile-section>summary b{font-size:16px}.mobile-section>summary span{margin-top:3px;color:var(--muted);font-size:11px}
+  .mobile-section>summary i{font-style:normal;font-size:22px;color:var(--green);transition:transform .2s ease}
+  .mobile-section[open]>summary i{transform:rotate(180deg)}
+  .mobile-section[open]>summary{border-bottom:1px solid var(--line)}
+  .mobile-section-body{display:block}.mobile-section-body>.panel{margin:0;border:0;border-radius:0;box-shadow:none;background:transparent}
+  .mobile-section-body>.panel>.panel-head{display:none}
+
+  /* Floating quick actions */
+  .quick-actions{display:block;position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:80}
+  .quick-fab{position:relative;z-index:3;width:58px;height:58px;min-height:58px;padding:0;border-radius:50%;display:grid;place-items:center;border-color:#6da33f;background:linear-gradient(145deg,var(--green),var(--green2));color:#071006;box-shadow:0 14px 34px rgba(0,0,0,.42)}
+  .quick-menu{position:absolute;right:0;bottom:70px;z-index:3;display:grid;gap:8px;width:210px;opacity:0;transform:translateY(10px) scale(.96);pointer-events:none;transition:.2s ease}
+  .quick-actions.open .quick-menu{opacity:1;transform:none;pointer-events:auto}
+  .quick-menu button{display:flex;align-items:center;gap:11px;justify-content:flex-start;width:100%;background:#172029;border-color:#3b4855;box-shadow:0 9px 24px rgba(0,0,0,.32)}
+  .quick-backdrop{position:fixed;inset:0;z-index:2;display:none;width:auto;height:auto;min-height:0;padding:0;border:0;border-radius:0;background:rgba(0,0,0,.42)}
+  .quick-actions.open .quick-backdrop{display:block}
+
+  /* Slight page entrance; disabled for reduced motion. */
+  .page>*{animation:v107-in .22s ease both}
+}
+
+@media(max-width:520px){
+  .pro-hero{display:grid;grid-template-columns:1fr auto;gap:12px;padding:16px}
+  .pro-greeting h2{font-size:21px}.pro-greeting p{font-size:12px}
+  .goal-ring{width:82px;height:82px;flex-basis:82px}.goal-ring strong{font-size:19px}
+  .chart-footer{font-size:10px}
+  .mini-journey{grid-template-columns:repeat(2,1fr)}
+  .dashboard-finance>div,.monthly-review>div,.coach-facts>div{padding:12px}
+}
+
+@keyframes v107-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

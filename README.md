@@ -1,20 +1,20 @@
-# Meine Finanzzentrale V10.6.1 – Sonderzahlungen Korrektur
+# Meine Finanzzentrale V10.7 – Mobile & UX Edition
 
-Korrigiert:
-- Jahressumme im Sparplan enthält jetzt Monatsraten plus Sonderzahlungen.
-- Monatsdurchschnitt enthält ebenfalls die Sonderzahlungen.
-- Unter der Jahressumme wird die Aufteilung angezeigt.
-- Jahresvergleich in den Statistiken nutzt die monatsgenauen Sonderzahlungen.
-- Monatsrückblick berücksichtigt Sonderzahlungen des aktuellen Monats.
-- Finanzcoach zeigt die insgesamt geplanten Sonderzahlungen.
-- Vermögensprognose, Finanzierung, Timeline und Zieltermin nutzen weiterhin die monatsgenaue Projektion.
+## Neu
+- moderne mobile Seitenleiste; Desktop-Navigation bleibt erhalten
+- mobile Schnellaktionen für Sonderzahlung, Zwischenstand, Dokument und Wohnung
+- fingerfreundliche Buttons, Eingaben und Auswahlfelder
+- einklappbare Bereiche im Sparplan auf dem Handy
+- kompakteres mobiles Dashboard und verbesserte Abstände
+- bessere horizontale Tabellenbedienung
+- sanfte Animationen mit Unterstützung für „Bewegung reduzieren“
+- sichtbare Fokuszustände für Tastaturbedienung
 
-Beispiel:
-4.800 € reguläre Sparraten + 1.000 € Sonderzahlung = 5.800 € Jahressumme.
+## Unverändert
+Supabase-Synchronisation, Sonderzahlungen, Prognosen, Finanzcoach, Timeline und sämtliche vorhandenen Datenmodelle bleiben bestehen.
 
-Update:
+## Installation
 1. ZIP entpacken.
-2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 10.6.1 Sonderzahlungen Fix“.
-4. Push origin.
-5. Nach dem grünen Workflow die App vollständig neu laden.
+2. Dateien im GitHub-Repository ersetzen.
+3. Commit und Push durchführen.
+4. Nach erfolgreichem GitHub-Workflow die App einmal vollständig neu laden.
