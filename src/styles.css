@@ -378,3 +378,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media (max-width: 420px){
   .special-payment-card .form-grid.two{grid-template-columns:1fr}
 }
+
+/* Version 10.8 – Cloud Center */
+.sync-badge.info,.drawer-sync.info{background:#e7f0ff;color:#2759a5}
+.cloud-center{align-items:start}
+.cloud-overview{padding:0;overflow:hidden}
+.cloud-status-hero{display:flex;align-items:center;gap:14px;padding:20px 22px;background:var(--surface-2,#f6f8fb)}
+.cloud-status-hero.good{background:#eaf8f0}.cloud-status-hero.warn{background:#fff7e6}.cloud-status-hero.info{background:#eaf2ff}
+.cloud-status-hero>div{display:flex;flex-direction:column;gap:2px;flex:1}.cloud-status-hero>div span,.cloud-status-hero small{color:var(--muted)}.cloud-status-hero strong{font-size:21px}
+.cloud-status-hero button,.cloud-actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.cloud-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.cloud-hint{display:flex;flex-direction:column;gap:3px;border-radius:12px;padding:12px 14px;margin-top:14px}.cloud-hint.good{background:#eaf8f0}.cloud-hint.warn{background:#fff7e6}.cloud-hint.info{background:#eaf2ff}.cloud-hint span{font-size:13px;color:var(--muted)}
+.cloud-version-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}.cloud-version-grid section{display:flex;flex-direction:column;gap:4px;padding:16px;border:1px solid var(--border);border-radius:14px}.cloud-version-grid section>span,.cloud-version-grid small{color:var(--muted)}.cloud-version-grid strong{font-size:18px}
+.compare-pill{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.compare-pill.good{background:#eaf8f0;color:#1e7046}.compare-pill.warn{background:#fff2d7;color:#8a5a00}.compare-pill.neutral{background:#eef1f5;color:#5b6470}
+.dashboard-cloud-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--border);background:var(--panel);border-radius:16px;padding:14px 16px;margin:0 0 16px;box-shadow:var(--shadow-sm);color:inherit}.dashboard-cloud-card:hover{transform:translateY(-1px)}.dashboard-cloud-card>div{display:flex;flex-direction:column;gap:2px}.dashboard-cloud-card small,.dashboard-cloud-card span{color:var(--muted)}.dashboard-cloud-card strong{font-size:17px}.cloud-card-dot{width:11px;height:11px;border-radius:50%;background:#8a94a3;flex:none}.dashboard-cloud-card.good .cloud-card-dot{background:#2d9a62}.dashboard-cloud-card.warn .cloud-card-dot{background:#d99019}.dashboard-cloud-card.info .cloud-card-dot{background:#3d72bf}
+@media(max-width:800px){.cloud-status-hero{align-items:flex-start;flex-wrap:wrap}.cloud-status-hero button{width:100%}.cloud-actions,.cloud-version-grid{grid-template-columns:1fr}.cloud-compare-table th:nth-child(4),.cloud-compare-table td:nth-child(4){position:sticky;right:0;background:var(--panel)}}

@@ -19,7 +19,7 @@ const deepMerge = (base, value) => {
   return value ?? base
 }
 
-const normalise = value => {
+export const normaliseState = value => {
   const merged = deepMerge(structuredClone(defaultState), value || {})
   merged.schemaVersion = 8
   merged.monthlySavings = Array.from({ length: 5 }, (_, year) =>
@@ -41,22 +41,22 @@ const normalise = value => {
 
 export function loadState() {
   const current = localStorage.getItem(STORAGE_KEY)
-  if (current) return normalise(JSON.parse(current))
+  if (current) return normaliseState(JSON.parse(current))
   for (const key of LEGACY_KEYS) {
     const raw = localStorage.getItem(key)
     if (!raw) continue
     try {
-      const migrated = normalise(JSON.parse(raw))
+      const migrated = normaliseState(JSON.parse(raw))
       localStorage.setItem(`${STORAGE_KEY}_backup_${Date.now()}`, raw)
       saveState(migrated)
       return migrated
     } catch {}
   }
-  return normalise(defaultState)
+  return normaliseState(defaultState)
 }
 
 export function saveState(state) {
-  const updated = { ...state, schemaVersion: 8, meta: { ...state.meta, updatedAt: new Date().toISOString() } }
+  const updated = { ...state, schemaVersion: 8 }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
   return updated
 }
@@ -71,7 +71,7 @@ export function exportState(state) {
 }
 
 export async function importState(file) {
-  return normalise(JSON.parse(await file.text()))
+  return normaliseState(JSON.parse(await file.text()))
 }
 
 
@@ -101,7 +101,7 @@ export function listLocalBackups() {
 export function restoreLocalBackup(id) {
   const raw = localStorage.getItem(id)
   if (!raw) throw new Error('Sicherung nicht gefunden.')
-  return normalise(JSON.parse(raw))
+  return normaliseState(JSON.parse(raw))
 }
 
 export function deleteLocalBackup(id) {

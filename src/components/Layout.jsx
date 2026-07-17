@@ -67,7 +67,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
     <aside className={`sidebar ${mobileOpen?'mobile-open':''}`}>
       <div className="brand">
         <div className="logo">€</div>
-        <div><strong>Finanzzentrale</strong><span>Version 10.7.1</span></div>
+        <div><strong>Finanzzentrale</strong><span>Version 10.8.0</span></div>
         <button className="drawer-close" aria-label="Menü schließen" onClick={()=>setMobileOpen(false)}>
           <X size={22}/>
         </button>
@@ -77,7 +77,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
 
       <nav>
         {items.map(([key,label,Icon]) =>
-          <button key={key} className={active===key?'active':''} onClick={()=>navigate(key)}>
+          <button key={key} data-cloud-link={key==='cloud'?'true':undefined} className={active===key?'active':''} onClick={()=>navigate(key)}>
             <Icon size={20}/>
             <span>{label}</span>
           </button>

@@ -13,7 +13,7 @@ const greeting=()=>{
   return 'Guten Abend'
 }
 
-export default function Dashboard({ state }) {
+export default function Dashboard({ state, cloud }) {
   const current = Number(state.assets.home||0) + Number(state.assets.pension||0)
   const totalAssets = current + Number(state.assets.emergency||0)
   const plan = projection(state).filter(x=>x.total!=null)
@@ -39,6 +39,10 @@ export default function Dashboard({ state }) {
         <div><strong>{Math.round(progress*100)}%</strong><span>Sparziel</span></div>
       </div>
     </section>
+
+    {cloud&&<button className={`dashboard-cloud-card ${cloud.status.kind}`} onClick={()=>document.querySelector('[data-cloud-link]')?.click()} type="button">
+      <span className="cloud-card-dot"/><div><small>Cloud-Status</small><strong>{cloud.status.text}</strong><span>{cloud.sameData?'PC und Handy stimmen überein':cloud.cloudNewer?'Neuere Daten liegen in der Cloud':cloud.localNewer?'Lokale Änderungen noch nicht hochgeladen':'Cloud-Center öffnen und prüfen'}</span></div>
+    </button>}
 
     <div className="pro-kpi-grid">
       <article className="pro-kpi accent">

@@ -1,20 +1,13 @@
-# Meine Finanzzentrale V10.6.1 – Sonderzahlungen Korrektur
+# Meine Finanzzentrale V10.8 – Cloud Center
 
-Korrigiert:
-- Jahressumme im Sparplan enthält jetzt Monatsraten plus Sonderzahlungen.
-- Monatsdurchschnitt enthält ebenfalls die Sonderzahlungen.
-- Unter der Jahressumme wird die Aufteilung angezeigt.
-- Jahresvergleich in den Statistiken nutzt die monatsgenauen Sonderzahlungen.
-- Monatsrückblick berücksichtigt Sonderzahlungen des aktuellen Monats.
-- Finanzcoach zeigt die insgesamt geplanten Sonderzahlungen.
-- Vermögensprognose, Finanzierung, Timeline und Zieltermin nutzen weiterhin die monatsgenaue Projektion.
+Neu:
+- Transparenter Cloud-Status: alles synchron, lokale Änderungen oder neuerer Cloud-Stand.
+- Vergleich von PC/Handy und Cloud mit Zeitstempel, Gerätename, App-Version und Revision.
+- Vergleich der Anzahl von Sparplan-Monaten, Sonderzahlungen, Zwischenständen, Immobilien und Dokumenten.
+- Bewusste Aktionen: lokalen Stand hochladen oder Cloud-Stand übernehmen.
+- Automatische Sicherung vor dem Ersetzen lokaler Daten.
+- Auto-Sync überschreibt keinen eindeutig neueren Cloud-Stand.
+- Dashboard-Karte mit aktuellem Cloud-Status.
+- Sonderzahlungen bleiben Teil des zentralen App-States und werden vollständig mit `app_state` synchronisiert.
 
-Beispiel:
-4.800 € reguläre Sparraten + 1.000 € Sonderzahlung = 5.800 € Jahressumme.
-
-Update:
-1. ZIP entpacken.
-2. Dateien in den Repository-Ordner kopieren und ersetzen.
-3. Commit „Version 10.6.1 Sonderzahlungen Fix“.
-4. Push origin.
-5. Nach dem grünen Workflow die App vollständig neu laden.
+Update: Dateien ins Repository kopieren, ersetzen, committen und pushen. Danach App auf PC und Handy vollständig neu laden.
