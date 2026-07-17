@@ -136,29 +136,56 @@ export default function Savings({ state, setState }) {
     </Panel>
     </MobileSection>
 
-    <MobileSection title="Sonderzahlungen" subtitle={`Geplant ${euro(totalSpecialPayments(state))}`}>
+    <MobileSection title="Sonderzahlungen" subtitle={`Geplant ${euro(totalSpecialPayments(state))}`} defaultOpen>
     <Panel title="Sonderzahlungen" subtitle={`Geplant insgesamt ${euro(totalSpecialPayments(state))}`}
       action={<button onClick={addSpecialPayment}>+ Sonderzahlung</button>}>
+      <div className="mobile-special-action">
+        <button onClick={addSpecialPayment}>+ Sonderzahlung hinzufügen</button>
+      </div>
       <p className="note">Sonderzahlungen werden im gewählten Monat eingerechnet. ETF-Zahlungen wachsen danach mit deiner Renditeannahme weiter.</p>
       {payments.length===0
         ? <div className="empty-state"><b>Noch keine Sonderzahlung geplant.</b><span>Lege z. B. Weihnachtsgeld, Urlaubsgeld oder einen Bonus an.</span></div>
-        : <div className="table-wrap"><table className="special-payments-table">
-          <thead><tr><th>Jahr</th><th>Monat</th><th>Betrag</th><th>Ziel</th><th>Beschreibung</th><th></th></tr></thead>
-          <tbody>{payments.map(payment=><tr key={payment.id}>
-            <td><input type="number" min={start.getFullYear()} max={start.getFullYear()+10} value={payment.year} onChange={e=>editSpecialPayment(payment.id,'year',e.target.value)}/></td>
-            <td><select value={payment.month} onChange={e=>editSpecialPayment(payment.id,'month',e.target.value)}>
-              {monthsLong.map((month,index)=><option value={index+1} key={month}>{month}</option>)}
-            </select></td>
-            <td><input type="number" min="0" step="50" value={payment.amount} onChange={e=>editSpecialPayment(payment.id,'amount',e.target.value)}/></td>
-            <td><select value={payment.target} onChange={e=>editSpecialPayment(payment.id,'target',e.target.value)}>
-              <option>ETF / Eigenkapital</option>
-              <option>Rente</option>
-              <option>Notgroschen</option>
-            </select></td>
-            <td><input value={payment.description||''} onChange={e=>editSpecialPayment(payment.id,'description',e.target.value)}/></td>
-            <td><button className="danger" onClick={()=>removeSpecialPayment(payment.id)}>×</button></td>
-          </tr>)}</tbody>
-        </table></div>
+        : <>
+          <div className="table-wrap desktop-special-editor"><table className="special-payments-table">
+            <thead><tr><th>Jahr</th><th>Monat</th><th>Betrag</th><th>Ziel</th><th>Beschreibung</th><th></th></tr></thead>
+            <tbody>{payments.map(payment=><tr key={payment.id}>
+              <td><input type="number" min={start.getFullYear()} max={start.getFullYear()+10} value={payment.year} onChange={e=>editSpecialPayment(payment.id,'year',e.target.value)}/></td>
+              <td><select value={payment.month} onChange={e=>editSpecialPayment(payment.id,'month',e.target.value)}>
+                {monthsLong.map((month,index)=><option value={index+1} key={month}>{month}</option>)}
+              </select></td>
+              <td><input type="number" min="0" step="50" value={payment.amount} onChange={e=>editSpecialPayment(payment.id,'amount',e.target.value)}/></td>
+              <td><select value={payment.target} onChange={e=>editSpecialPayment(payment.id,'target',e.target.value)}>
+                <option>ETF / Eigenkapital</option>
+                <option>Rente</option>
+                <option>Notgroschen</option>
+              </select></td>
+              <td><input value={payment.description||''} onChange={e=>editSpecialPayment(payment.id,'description',e.target.value)}/></td>
+              <td><button className="danger" onClick={()=>removeSpecialPayment(payment.id)}>×</button></td>
+            </tr>)}</tbody>
+          </table></div>
+
+          <div className="mobile-special-editor">
+            {payments.map(payment=><article className="special-payment-card" key={payment.id}>
+              <div className="special-payment-card-head">
+                <b>{monthsLong[Number(payment.month)-1]} {payment.year}</b>
+                <button className="danger" onClick={()=>removeSpecialPayment(payment.id)} aria-label="Sonderzahlung löschen">Löschen</button>
+              </div>
+              <div className="form-grid two">
+                <label>Jahr<input type="number" min={start.getFullYear()} max={start.getFullYear()+10} value={payment.year} onChange={e=>editSpecialPayment(payment.id,'year',e.target.value)}/></label>
+                <label>Monat<select value={payment.month} onChange={e=>editSpecialPayment(payment.id,'month',e.target.value)}>
+                  {monthsLong.map((month,index)=><option value={index+1} key={month}>{month}</option>)}
+                </select></label>
+                <label>Betrag<input type="number" min="0" step="50" value={payment.amount} onChange={e=>editSpecialPayment(payment.id,'amount',e.target.value)}/></label>
+                <label>Ziel<select value={payment.target} onChange={e=>editSpecialPayment(payment.id,'target',e.target.value)}>
+                  <option>ETF / Eigenkapital</option>
+                  <option>Rente</option>
+                  <option>Notgroschen</option>
+                </select></label>
+              </div>
+              <label>Beschreibung<input value={payment.description||''} onChange={e=>editSpecialPayment(payment.id,'description',e.target.value)}/></label>
+            </article>)}
+          </div>
+        </>
       }
     </Panel>
     </MobileSection>

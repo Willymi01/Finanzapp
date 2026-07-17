@@ -360,3 +360,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 @keyframes v107-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* V10.7.1 – vollständige Sonderzahlungsverwaltung auf Mobilgeräten */
+.mobile-special-action,.mobile-special-editor{display:none}
+.special-payment-card select{width:100%;background:#fff3bb;color:#111;border:1px solid #d4c36c;border-radius:8px;padding:11px;font-weight:650}
+@media (max-width: 720px){
+  .mobile-special-action{display:block;margin-bottom:12px}
+  .mobile-special-action button{width:100%;min-height:50px}
+  .desktop-special-editor{display:none}
+  .mobile-special-editor{display:grid;gap:12px}
+  .special-payment-card{display:grid;gap:12px;padding:14px;background:#10151a;border:1px solid var(--line);border-radius:13px}
+  .special-payment-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .special-payment-card-head .danger{min-height:42px;padding:8px 11px}
+  .special-payment-card .form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .special-payment-card input,.special-payment-card select{min-height:48px}
+}
+@media (max-width: 420px){
+  .special-payment-card .form-grid.two{grid-template-columns:1fr}
+}
