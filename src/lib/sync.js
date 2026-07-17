@@ -1,4 +1,5 @@
-export const APP_VERSION = '10.8.0'
+export const APP_VERSION = '10.8.1'
+export const APP_BUILD = '2026-07-17-cloud-consistency-fix'
 
 const DEVICE_ID_KEY = 'finance_device_id'
 const DEVICE_NAME_KEY = 'finance_device_name'
@@ -34,9 +35,11 @@ export function dataFingerprint(state){
 }
 
 export function dataSummary(state){
+  const specialPayments=state?.specialPayments||[]
   return {
     sparplan:(state?.monthlySavings||[]).flat().filter(value=>Number(value)!==0).length,
-    sonderzahlungen:(state?.specialPayments||[]).length,
+    sonderzahlungen:specialPayments.length,
+    sonderzahlungenSumme:specialPayments.reduce((sum,item)=>sum+Math.max(0,Number(item.amount||0)),0),
     zwischenstaende:(state?.snapshots||[]).length,
     immobilien:(state?.properties||[]).length,
     dokumente:(state?.documents||[]).length
@@ -63,4 +66,15 @@ export function withLocalMeta(state,previousMeta={}){
       revision:Number(previousMeta.revision||state.meta?.revision||0)+1
     }
   }
+}
+
+
+export function compareVersions(left='0',right='0'){
+  const a=String(left).split('.').map(value=>Number(value)||0)
+  const b=String(right).split('.').map(value=>Number(value)||0)
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    if((a[i]||0)>(b[i]||0))return 1
+    if((a[i]||0)<(b[i]||0))return -1
+  }
+  return 0
 }

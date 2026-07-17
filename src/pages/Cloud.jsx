@@ -1,6 +1,6 @@
 import { Cloud as CloudIcon, Download, RefreshCw, Upload, MonitorSmartphone, CheckCircle2, AlertTriangle } from 'lucide-react'
 
-const rows=[['Sparplan-Monate','sparplan'],['Sonderzahlungen','sonderzahlungen'],['Zwischenstände','zwischenstaende'],['Immobilien','immobilien'],['Dokumente','dokumente']]
+const rows=[['Sparplan-Monate','sparplan'],['Sonderzahlungen','sonderzahlungen'],['Sonderzahlungen gesamt','sonderzahlungenSumme'],['Zwischenstände','zwischenstaende'],['Immobilien','immobilien'],['Dokumente','dokumente']]
 
 function StatusIcon({kind}){
   return kind==='good'?<CheckCircle2 size={22}/>:kind==='warn'||kind==='info'?<AlertTriangle size={22}/>:<CloudIcon size={22}/>
@@ -15,6 +15,7 @@ export default function Cloud({cloud}) {
     <button onClick={cloud.refresh} disabled={!cloud.user||cloud.busy}><RefreshCw size={17}/>{cloud.busy?'Prüfe…':'Status aktualisieren'}</button>
    </div>
    {cloud.error&&<div className="warning">{cloud.error}</div>}
+   {cloud.appVersionDifferent&&<div className="cloud-version-warning"><div><b>Unterschiedliche App-Versionen erkannt</b><span>Dieses Gerät nutzt Version {cloud.local.version}, der Cloud-Stand wurde mit Version {cloud.remote?.version} gespeichert. Dadurch können identische Daten unterschiedlich dargestellt oder berechnet werden.</span></div><button onClick={cloud.refreshApplication}>App jetzt aktualisieren</button></div>}
   </article>
 
   <article className="panel span-5">
@@ -42,7 +43,7 @@ export default function Cloud({cloud}) {
   <article className="panel span-12">
    <div className="panel-head"><div><h2>Datenvergleich</h2><p>Direkter Überblick über lokalen und gespeicherten Cloud-Stand</p></div><MonitorSmartphone size={26}/></div>
    <div className="cloud-version-grid">
-    <section><span>Dieses Gerät</span><strong>{cloud.local.device}</strong><small>Stand: {cloud.formatTime(cloud.local.time)}</small><small>App {cloud.local.version} · Revision {cloud.local.revision}</small></section>
+    <section><span>Dieses Gerät</span><strong>{cloud.local.device}</strong><small>Stand: {cloud.formatTime(cloud.local.time)}</small><small>Laufende App {cloud.local.version} · Datenstand {cloud.local.dataVersion} · Revision {cloud.local.revision}</small></section>
     <section><span>Cloud</span><strong>{cloud.remote?.device||'Noch kein Cloud-Stand'}</strong><small>Stand: {cloud.formatTime(cloud.remote?.time)}</small><small>{cloud.remote?`App ${cloud.remote.version} · Revision ${cloud.remote.revision}`:'Noch keine Daten gespeichert'}</small></section>
    </div>
    <div className="table-wrap"><table className="cloud-compare-table"><thead><tr><th>Bereich</th><th>Dieses Gerät</th><th>Cloud</th><th>Status</th></tr></thead><tbody>

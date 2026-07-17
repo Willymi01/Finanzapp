@@ -177,7 +177,7 @@ export function coachMessages(state) {
   const rate = savingsRate(state)
   const status = planStatus(state)
   const extra = additionalMonthlyToGoal(state)
-  const monthSaving = plannedSavingForDate(state)
+  const monthSaving = plannedContributionForDate(state)
   const milestone = nextCapitalMilestone(state)
 
   if (rate >= .20) messages.push({type:'good',title:'Starke Sparquote',text:`Aktuell sparst du rechnerisch ${percent(rate)} deines Einkommens.`})
@@ -187,7 +187,7 @@ export function coachMessages(state) {
   if (status.kind === 'good') messages.push({type:'good',title:'Zeitplan',text:`Du bist ${status.label.toLowerCase()}.`})
   else messages.push({type:'warn',title:'Zeitplan',text:extra>0?`Mit zusätzlich etwa ${euro(extra)} monatlich würdest du die Ziellücke schließen.`:'Dein Zieltermin sollte überprüft werden.'})
 
-  messages.push({type:'neutral',title:'Dieser Monat',text:`Geplant sind ${euro(monthSaving)} Sparrate.`})
+  messages.push({type:'neutral',title:'Dieser Monat',text:`Geplant sind ${euro(monthSaving)} inklusive Sonderzahlungen.`})
   messages.push({type:'neutral',title:'Nächster Meilenstein',text:`Noch ${euro(milestone.remaining)} bis ${euro(milestone.target)}.`})
 
   return messages

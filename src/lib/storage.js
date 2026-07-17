@@ -21,7 +21,8 @@ const deepMerge = (base, value) => {
 
 export const normaliseState = value => {
   const merged = deepMerge(structuredClone(defaultState), value || {})
-  merged.schemaVersion = 8
+  merged.schemaVersion = 9
+  if (merged.assumptions && 'specialAnnual' in merged.assumptions) delete merged.assumptions.specialAnnual
   merged.monthlySavings = Array.from({ length: 5 }, (_, year) =>
     Array.from({ length: 12 }, (_, month) =>
       Number(merged.monthlySavings?.[year]?.[month] ?? [300,450,600,750,900][year])
@@ -56,7 +57,7 @@ export function loadState() {
 }
 
 export function saveState(state) {
-  const updated = { ...state, schemaVersion: 8 }
+  const updated = { ...state, schemaVersion: 9 }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
   return updated
 }

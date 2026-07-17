@@ -20,7 +20,6 @@ export const defaultState = {
     bankRepayment: 0.02,
     ownerCosts: 250,
     maintenance: 100,
-    specialAnnual: 1500,
   },
   assets: { home: 5000, pension: 15000, emergency: 0 },
   budget: {

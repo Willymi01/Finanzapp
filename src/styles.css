@@ -393,3 +393,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .compare-pill{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.compare-pill.good{background:#eaf8f0;color:#1e7046}.compare-pill.warn{background:#fff2d7;color:#8a5a00}.compare-pill.neutral{background:#eef1f5;color:#5b6470}
 .dashboard-cloud-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--border);background:var(--panel);border-radius:16px;padding:14px 16px;margin:0 0 16px;box-shadow:var(--shadow-sm);color:inherit}.dashboard-cloud-card:hover{transform:translateY(-1px)}.dashboard-cloud-card>div{display:flex;flex-direction:column;gap:2px}.dashboard-cloud-card small,.dashboard-cloud-card span{color:var(--muted)}.dashboard-cloud-card strong{font-size:17px}.cloud-card-dot{width:11px;height:11px;border-radius:50%;background:#8a94a3;flex:none}.dashboard-cloud-card.good .cloud-card-dot{background:#2d9a62}.dashboard-cloud-card.warn .cloud-card-dot{background:#d99019}.dashboard-cloud-card.info .cloud-card-dot{background:#3d72bf}
 @media(max-width:800px){.cloud-status-hero{align-items:flex-start;flex-wrap:wrap}.cloud-status-hero button{width:100%}.cloud-actions,.cloud-version-grid{grid-template-columns:1fr}.cloud-compare-table th:nth-child(4),.cloud-compare-table td:nth-child(4){position:sticky;right:0;background:var(--panel)}}
+
+
+/* V10.8.1 – Versions- und Cache-Konsistenz */
+.cloud-version-warning{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 18px;border:1px solid rgba(255,184,77,.42);border-radius:16px;background:rgba(255,184,77,.09)}
+.cloud-version-warning div{display:grid;gap:4px}.cloud-version-warning span{color:var(--muted);line-height:1.45}.cloud-version-warning button{white-space:nowrap}
+@media(max-width:700px){.cloud-version-warning{align-items:stretch;flex-direction:column}.cloud-version-warning button{width:100%}}
