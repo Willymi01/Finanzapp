@@ -1,12 +1,14 @@
-# Testbericht V10.9.1
+# Testbericht V10.9.1a
 
-- Produktionsbuild mit Vite ausgeführt
-- bestehende V10.9.0-Projekte bleiben durch optionale Felder kompatibel
-- Bankdarlehen mit monatlicher Zins- und Tilgungsaufteilung getestet
-- KfW-Darlehen mit und ohne tilgungsfreie Anlaufjahre getestet
-- Restschuld nach Zinsbindung getestet
-- vollständige Laufzeit bis maximal 60 Jahre getestet
-- Jahresaggregation und kombinierte Restschuld geprüft
-- Cloud-State enthält weiterhin das vollständige Finanzierungsprojekt
+## Durchgeführt
 
-Hinweis: Das Modell verwendet den eingegebenen Sollzins über die gesamte Simulation. Eine Anschlussfinanzierung mit verändertem Zinssatz folgt später.
+- Produktionsbuild mit Vite erfolgreich erstellt.
+- Alle Zahlenfelder der Wohnungsfinanzierung auf die neue robuste Eingabekomponente umgestellt.
+- Eingabe mit Punkt und Komma geprüft.
+- Temporäres Leeren eines Feldes ist möglich; Übernahme erfolgt mit Enter oder beim Verlassen des Feldes.
+- Kaufnebenkosten, Bank, KfW und laufende Wohnungskosten verwenden dieselbe Eingabelogik.
+- PWA-Dateien und Service Worker wurden neu erzeugt.
+
+## Hinweis
+
+Die Berechnungslogik aus V10.9.1 wurde nicht verändert. Diese Version behebt ausschließlich die Eingabe- und Bedienprobleme.

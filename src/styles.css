@@ -429,3 +429,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .repayment-table-wrap{max-height:520px;overflow:auto}.repayment-table{min-width:980px}.repayment-table thead th{position:sticky;top:0;z-index:2;background:#1b222a}.repayment-table tbody tr:nth-child(10n){background:rgba(146,208,80,.045)}
 @media(max-width:1000px){.housing-title-edit{grid-template-columns:1fr 1fr}.housing-title-edit label:nth-child(2){grid-column:1/-1;grid-row:2}.repayment-insights{grid-template-columns:1fr 1fr}.loan-result-strip{grid-template-columns:1fr}}
 @media(max-width:700px){.housing-title-edit{grid-template-columns:1fr}.housing-title-edit label:nth-child(2){grid-column:auto;grid-row:auto}.repayment-insights{grid-template-columns:1fr}.repayment-chart-labels{display:grid}.repayment-table-wrap{max-height:440px}}
+
+/* Version 10.9.1a – Eingabefix */
+.input-suffix-wrap input{position:relative;z-index:1;text-align:left;caret-color:#111;pointer-events:auto;user-select:text}
+.input-suffix-wrap>span{z-index:2;background:linear-gradient(90deg,rgba(255,243,187,0),#fff3bb 28%);padding-left:10px}
+.input-suffix-wrap input:focus{box-shadow:0 0 0 3px rgba(146,208,80,.28);border-color:#92d050}

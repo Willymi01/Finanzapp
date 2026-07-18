@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Building2, Plus, Trash2, Landmark, Home, CalendarClock, TrendingDown } from 'lucide-react'
 import { MetricCard, Panel } from '../components/Cards'
 import { euro } from '../lib/calculations'
@@ -6,6 +6,56 @@ import { euro } from '../lib/calculations'
 const number = value => Math.max(0, Number(value || 0))
 const pct = value => number(value) / 100
 const currentMonth = () => new Date().toISOString().slice(0, 7)
+
+const parseNumberInput = value => {
+  const normalized = String(value ?? '').trim().replace(',', '.')
+  if (normalized === '') return null
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : null
+}
+
+function NumberInput({ value, onValueChange, min = 0, max, step = 'any', ...props }) {
+  const [draft, setDraft] = useState(String(value ?? ''))
+
+  useEffect(() => {
+    const active = document.activeElement
+    if (active !== null && active === props.inputRef?.current) return
+    setDraft(String(value ?? ''))
+  }, [value])
+
+  const commit = raw => {
+    const parsed = parseNumberInput(raw)
+    if (parsed === null) {
+      setDraft(String(value ?? ''))
+      return
+    }
+    const clamped = Math.min(max == null ? parsed : Number(max), Math.max(Number(min ?? 0), parsed))
+    setDraft(String(clamped))
+    onValueChange(clamped)
+  }
+
+  return <input
+    {...props}
+    type="text"
+    inputMode="decimal"
+    value={draft}
+    onFocus={event => event.currentTarget.select()}
+    onChange={event => {
+      const raw = event.target.value
+      if (/^\d*(?:[.,]\d*)?$/.test(raw)) setDraft(raw)
+    }}
+    onBlur={event => commit(event.target.value)}
+    onKeyDown={event => {
+      if (event.key === 'Enter') {
+        commit(event.currentTarget.value)
+        event.currentTarget.blur()
+      }
+    }}
+    aria-valuemin={min}
+    aria-valuemax={max}
+    data-step={step}
+  />
+}
 
 export const createHousingFinanceProject = (state, index = 1) => ({
   id: crypto.randomUUID(),
@@ -287,11 +337,11 @@ export default function HousingFinance({ state, setState }) {
     <div className="content-grid housing-grid">
       <Panel title="Objekt & Eigenkapital" subtitle="Grunddaten der Wohnung und vorhandenes Eigenkapital" className="span-6">
         <div className="form-grid two">
-          <Field label="Kaufpreis" suffix="€"><input type="number" min="0" value={project.property.purchasePrice} onChange={event => updateSection('property','purchasePrice',number(event.target.value))}/></Field>
-          <Field label="Wohnfläche" suffix="m²"><input type="number" min="0" value={project.property.livingArea} onChange={event => updateSection('property','livingArea',number(event.target.value))}/></Field>
-          <Field label="Baujahr"><input type="number" min="1800" max="2100" value={project.property.buildYear} onChange={event => updateSection('property','buildYear',event.target.value)}/></Field>
+          <Field label="Kaufpreis" suffix="€"><NumberInput value={project.property.purchasePrice} onValueChange={value => updateSection('property','purchasePrice',value)}/></Field>
+          <Field label="Wohnfläche" suffix="m²"><NumberInput value={project.property.livingArea} onValueChange={value => updateSection('property','livingArea',value)}/></Field>
+          <Field label="Baujahr"><NumberInput min={1800} max={2100} value={project.property.buildYear} onValueChange={value => updateSection('property','buildYear',value)}/></Field>
           <label className="check-field"><input type="checkbox" checked={project.equity.useCurrent} onChange={event => updateSection('equity','useCurrent',event.target.checked)}/><span>Aktuelles Vermögen automatisch übernehmen</span></label>
-          {!project.equity.useCurrent && <Field label="Eigenkapital manuell" suffix="€"><input type="number" min="0" value={project.equity.manualAmount} onChange={event => updateSection('equity','manualAmount',number(event.target.value))}/></Field>}
+          {!project.equity.useCurrent && <Field label="Eigenkapital manuell" suffix="€"><NumberInput value={project.equity.manualAmount} onValueChange={value => updateSection('equity','manualAmount',value)}/></Field>}
           <label className="check-field"><input type="checkbox" checked={project.equity.includePension} onChange={event => updateSection('equity','includePension',event.target.checked)}/><span>Rentenvermögen einbeziehen</span></label>
           <label className="check-field"><input type="checkbox" checked={project.equity.includeEmergency} onChange={event => updateSection('equity','includeEmergency',event.target.checked)}/><span>Notgroschen einbeziehen</span></label>
         </div>
@@ -299,23 +349,23 @@ export default function HousingFinance({ state, setState }) {
 
       <Panel title="Kaufnebenkosten" subtitle="Prozentsätze und einmalige Zusatzkosten" className="span-6">
         <div className="form-grid two">
-          <Field label="Grunderwerbsteuer" suffix="%"><input type="number" min="0" step="0.1" value={project.purchaseCosts.transferTaxPct} onChange={event => updateSection('purchaseCosts','transferTaxPct',number(event.target.value))}/></Field>
-          <Field label="Notar" suffix="%"><input type="number" min="0" step="0.1" value={project.purchaseCosts.notaryPct} onChange={event => updateSection('purchaseCosts','notaryPct',number(event.target.value))}/></Field>
-          <Field label="Grundbuch" suffix="%"><input type="number" min="0" step="0.1" value={project.purchaseCosts.landRegisterPct} onChange={event => updateSection('purchaseCosts','landRegisterPct',number(event.target.value))}/></Field>
-          <Field label="Makler" suffix="%"><input type="number" min="0" step="0.1" value={project.purchaseCosts.brokerPct} onChange={event => updateSection('purchaseCosts','brokerPct',number(event.target.value))}/></Field>
-          <Field label="Renovierung" suffix="€"><input type="number" min="0" value={project.purchaseCosts.renovation} onChange={event => updateSection('purchaseCosts','renovation',number(event.target.value))}/></Field>
-          <Field label="Möbel / Einrichtung" suffix="€"><input type="number" min="0" value={project.purchaseCosts.furnishing} onChange={event => updateSection('purchaseCosts','furnishing',number(event.target.value))}/></Field>
-          <Field label="Sonstige Kosten" suffix="€"><input type="number" min="0" value={project.purchaseCosts.other} onChange={event => updateSection('purchaseCosts','other',number(event.target.value))}/></Field>
+          <Field label="Grunderwerbsteuer" suffix="%"><NumberInput value={project.purchaseCosts.transferTaxPct} onValueChange={value => updateSection('purchaseCosts','transferTaxPct',value)} step="0.1"/></Field>
+          <Field label="Notar" suffix="%"><NumberInput value={project.purchaseCosts.notaryPct} onValueChange={value => updateSection('purchaseCosts','notaryPct',value)} step="0.1"/></Field>
+          <Field label="Grundbuch" suffix="%"><NumberInput value={project.purchaseCosts.landRegisterPct} onValueChange={value => updateSection('purchaseCosts','landRegisterPct',value)} step="0.1"/></Field>
+          <Field label="Makler" suffix="%"><NumberInput value={project.purchaseCosts.brokerPct} onValueChange={value => updateSection('purchaseCosts','brokerPct',value)} step="0.1"/></Field>
+          <Field label="Renovierung" suffix="€"><NumberInput value={project.purchaseCosts.renovation} onValueChange={value => updateSection('purchaseCosts','renovation',value)}/></Field>
+          <Field label="Möbel / Einrichtung" suffix="€"><NumberInput value={project.purchaseCosts.furnishing} onValueChange={value => updateSection('purchaseCosts','furnishing',value)}/></Field>
+          <Field label="Sonstige Kosten" suffix="€"><NumberInput value={project.purchaseCosts.other} onValueChange={value => updateSection('purchaseCosts','other',value)}/></Field>
         </div>
       </Panel>
 
       <Panel title="Bankdarlehen" subtitle={`Automatisch verbleibender Betrag: ${euro(summary.bankAmount)}`} className="span-6">
         <div className="loan-heading"><Landmark size={22}/><strong>Monatliche Annuität: {euro(summary.bankPlan.regularRate)}</strong></div>
         <div className="form-grid two">
-          <Field label="Sollzins" suffix="%"><input type="number" min="0" step="0.01" value={project.bank.interestPct} onChange={event => updateSection('bank','interestPct',number(event.target.value))}/></Field>
-          <Field label="Anfangstilgung" suffix="%"><input type="number" min="0" step="0.01" value={project.bank.repaymentPct} onChange={event => updateSection('bank','repaymentPct',number(event.target.value))}/></Field>
-          <Field label="Zinsbindung" suffix="Jahre"><input type="number" min="1" value={project.bank.fixedYears} onChange={event => updateSection('bank','fixedYears',number(event.target.value))}/></Field>
-          <Field label="Gewünschte Laufzeit" suffix="Jahre"><input type="number" min="1" value={project.bank.termYears} onChange={event => updateSection('bank','termYears',number(event.target.value))}/></Field>
+          <Field label="Sollzins" suffix="%"><NumberInput value={project.bank.interestPct} onValueChange={value => updateSection('bank','interestPct',value)} step="0.01"/></Field>
+          <Field label="Anfangstilgung" suffix="%"><NumberInput value={project.bank.repaymentPct} onValueChange={value => updateSection('bank','repaymentPct',value)} step="0.01"/></Field>
+          <Field label="Zinsbindung" suffix="Jahre"><NumberInput value={project.bank.fixedYears} onValueChange={value => updateSection('bank','fixedYears',value)}/></Field>
+          <Field label="Gewünschte Laufzeit" suffix="Jahre"><NumberInput value={project.bank.termYears} onValueChange={value => updateSection('bank','termYears',value)}/></Field>
         </div>
         <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.bankPlan.residual(number(project.bank.fixedYears) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.bankPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.bankPlan.payoffMonths)}</b></span></div>
       </Panel>
@@ -326,12 +376,12 @@ export default function HousingFinance({ state, setState }) {
           <div className="loan-heading"><Home size={22}/><strong>{number(project.kfw.graceYears) > 0 ? `Start ${euro(summary.kfwRate)} · danach ${euro(summary.regularKfwRate)}` : `Monatliche Annuität: ${euro(summary.regularKfwRate)}`}</strong></div>
           <div className="form-grid two">
             <Field label="Programm"><input value={project.kfw.program} onChange={event => updateSection('kfw','program',event.target.value)}/></Field>
-            <Field label="Darlehensbetrag" suffix="€"><input type="number" min="0" value={project.kfw.amount} onChange={event => updateSection('kfw','amount',number(event.target.value))}/></Field>
-            <Field label="Sollzins" suffix="%"><input type="number" min="0" step="0.01" value={project.kfw.interestPct} onChange={event => updateSection('kfw','interestPct',number(event.target.value))}/></Field>
-            <Field label="Anfangstilgung" suffix="%"><input type="number" min="0" step="0.01" value={project.kfw.repaymentPct} onChange={event => updateSection('kfw','repaymentPct',number(event.target.value))}/></Field>
-            <Field label="Tilgungsfreie Jahre" suffix="Jahre"><input type="number" min="0" value={project.kfw.graceYears} onChange={event => updateSection('kfw','graceYears',number(event.target.value))}/></Field>
-            <Field label="Zinsbindung" suffix="Jahre"><input type="number" min="1" value={project.kfw.fixedYears ?? 10} onChange={event => updateSection('kfw','fixedYears',number(event.target.value))}/></Field>
-            <Field label="Gewünschte Laufzeit" suffix="Jahre"><input type="number" min="1" value={project.kfw.termYears} onChange={event => updateSection('kfw','termYears',number(event.target.value))}/></Field>
+            <Field label="Darlehensbetrag" suffix="€"><NumberInput value={project.kfw.amount} onValueChange={value => updateSection('kfw','amount',value)}/></Field>
+            <Field label="Sollzins" suffix="%"><NumberInput value={project.kfw.interestPct} onValueChange={value => updateSection('kfw','interestPct',value)} step="0.01"/></Field>
+            <Field label="Anfangstilgung" suffix="%"><NumberInput value={project.kfw.repaymentPct} onValueChange={value => updateSection('kfw','repaymentPct',value)} step="0.01"/></Field>
+            <Field label="Tilgungsfreie Jahre" suffix="Jahre"><NumberInput value={project.kfw.graceYears} onValueChange={value => updateSection('kfw','graceYears',value)}/></Field>
+            <Field label="Zinsbindung" suffix="Jahre"><NumberInput min={1} value={project.kfw.fixedYears ?? 10} onValueChange={value => updateSection('kfw','fixedYears',value)}/></Field>
+            <Field label="Gewünschte Laufzeit" suffix="Jahre"><NumberInput value={project.kfw.termYears} onValueChange={value => updateSection('kfw','termYears',value)}/></Field>
           </div>
           <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.kfwPlan.residual(number(project.kfw.fixedYears ?? 10) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.kfwPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.kfwPlan.payoffMonths)}</b></span></div>
         </div>
@@ -343,7 +393,7 @@ export default function HousingFinance({ state, setState }) {
             ['houseFee','Hausgeld'],['heating','Heizung'],['electricity','Strom'],['internet','Internet'],
             ['insurance','Versicherungen'],['maintenance','Instandhaltungsrücklage'],['propertyTax','Grundsteuer'],
             ['parking','Stellplatz / Garage'],['other','Sonstige Kosten'],
-          ].map(([key,label]) => <Field key={key} label={label} suffix="€/Monat"><input type="number" min="0" value={project.monthlyCosts[key]} onChange={event => updateSection('monthlyCosts',key,number(event.target.value))}/></Field>)}
+          ].map(([key,label]) => <Field key={key} label={label} suffix="€/Monat"><NumberInput value={project.monthlyCosts[key]} onValueChange={value => updateSection('monthlyCosts',key,value)}/></Field>)}
         </div>
       </Panel>
 
