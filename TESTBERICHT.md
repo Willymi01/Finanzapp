@@ -1,14 +1,22 @@
-# Testbericht V10.9.2cc
+# Testbericht – Version 10.9.3
 
-## Durchgeführt
+## Produktionsbuild
 
-- Produktionsbuild mit Vite erfolgreich erstellt.
-- Alle Zahlenfelder der Wohnungsfinanzierung auf die neue robuste Eingabekomponente umgestellt.
-- Eingabe mit Punkt und Komma geprüft.
-- Temporäres Leeren eines Feldes ist möglich; Übernahme erfolgt mit Enter oder beim Verlassen des Feldes.
-- Kaufnebenkosten, Bank, KfW und laufende Wohnungskosten verwenden dieselbe Eingabelogik.
-- PWA-Dateien und Service Worker wurden neu erzeugt.
+- `npm run build` erfolgreich
+- PWA-Service-Worker neu erzeugt
+- neue versionierte CSS- und JavaScript-Dateien erzeugt
 
-## Hinweis
+## Berechnungstests
 
-Die Berechnungslogik aus V10.9.1 wurde nicht verändert. Diese Version behebt ausschließlich die Eingabe- und Bedienprobleme.
+Getestetes Beispieldarlehen: 300.000 €, 3,5 % Sollzins, 2 % Anfangstilgung, 30 Jahre Wunschlaufzeit.
+
+- Basisszenario: 348 Monate, rund 177.593 € Zinsen
+- 10.000 € Sondertilgung im zweiten Jahr: 330 Monate, rund 162.586 € Zinsen
+- Monatsrate ab dem dritten Jahr auf 1.800 € erhöht: 240 Monate, rund 120.736 € Zinsen
+- KfW-Anlaufphase und Sondertilgung wurden separat geprüft
+
+Die Tests bestätigen, dass Sondertilgungen und Ratenänderungen Laufzeit, Zinsen und Restschuld verändern.
+
+## Datenmigration
+
+Bestehende Finanzierungsprojekte erhalten beim Laden automatisch leere Listen für Ratenänderungen und Sondertilgungen. Vorhandene Projektdaten bleiben erhalten.

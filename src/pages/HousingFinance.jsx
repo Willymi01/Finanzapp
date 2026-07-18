@@ -114,11 +114,13 @@ export const createHousingFinanceProject = (state, index = 1) => ({
     parking: 0,
     other: 0,
   },
+  rateChanges: [],
+  extraRepayments: [],
   notes: '',
   createdAt: new Date().toISOString(),
 })
 
-export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, termYears = 0, maxMonths = 720 }) {
+export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, termYears = 0, rateChanges = [], extraRepayments = [], maxMonths = 720 }) {
   const amount = number(principal)
   const monthlyInterest = pct(interestPct) / 12
   const initialRate = amount > 0 ? amount * (pct(interestPct) + pct(repaymentPct)) / 12 : 0
@@ -129,26 +131,41 @@ export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceM
       ? amount * monthlyInterest / (1 - Math.pow(1 + monthlyInterest, -requestedMonths))
       : amount / requestedMonths
   const regularRate = Math.max(initialRate, termRate)
+  const sortedRateChanges = [...(rateChanges || [])]
+    .map(item => ({ ...item, startMonth: Math.max(1, Math.round(number(item.startYear) * 12 - 11)), monthlyRate: number(item.monthlyRate) }))
+    .filter(item => item.monthlyRate > 0)
+    .sort((a, b) => a.startMonth - b.startMonth)
+  const extraByMonth = new Map()
+  for (const item of extraRepayments || []) {
+    const month = Math.max(1, Math.round(number(item.year) * 12))
+    extraByMonth.set(month, (extraByMonth.get(month) || 0) + number(item.amount))
+  }
   let balance = amount
   let totalInterest = 0
   let totalPaid = 0
+  let totalExtraRepayment = 0
   const rows = []
 
-  if (amount <= 0) return { rows, regularRate: 0, firstRate: 0, payoffMonths: 0, totalInterest: 0, totalPaid: 0, residual: () => 0, paidOff: true }
+  if (amount <= 0) return { rows, regularRate: 0, firstRate: 0, payoffMonths: 0, totalInterest: 0, totalPaid: 0, totalExtraRepayment: 0, residual: () => 0, paidOff: true }
 
   for (let month = 1; month <= maxMonths && balance > 0.005; month += 1) {
     const opening = balance
     const interest = opening * monthlyInterest
     const grace = month <= graceMonths
-    const plannedPayment = grace ? interest : regularRate
+    const activeChange = sortedRateChanges.filter(item => item.startMonth <= month).at(-1)
+    const chosenRate = activeChange?.monthlyRate || regularRate
+    const plannedPayment = grace ? interest : Math.max(chosenRate, interest)
     const payment = Math.min(opening + interest, plannedPayment)
     const repayment = Math.max(0, payment - interest)
-    balance = Math.max(0, opening - repayment)
+    let afterRegular = Math.max(0, opening - repayment)
+    const extraRepayment = Math.min(afterRegular, extraByMonth.get(month) || 0)
+    balance = Math.max(0, afterRegular - extraRepayment)
     totalInterest += interest
-    totalPaid += payment
-    rows.push({ month, opening, interest, repayment, payment, balance, grace })
+    totalPaid += payment + extraRepayment
+    totalExtraRepayment += extraRepayment
+    rows.push({ month, opening, interest, repayment, extraRepayment, payment, totalPayment: payment + extraRepayment, balance, grace, monthlyRate: chosenRate })
 
-    if (!grace && regularRate <= interest + 0.0001) break
+    if (!grace && chosenRate <= interest + 0.0001 && extraRepayment <= 0) break
   }
 
   const paidOff = balance <= 0.005
@@ -164,6 +181,7 @@ export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceM
     payoffMonths,
     totalInterest,
     totalPaid,
+    totalExtraRepayment,
     residual,
     paidOff,
   }
@@ -186,15 +204,17 @@ const combinedAnnualSchedule = (bankPlan, kfwPlan, startDate) => {
         payment: 0,
         interest: 0,
         repayment: 0,
+        extraRepayment: 0,
         bankBalance: bank?.opening ?? 0,
         kfwBalance: kfw?.opening ?? 0,
         balance: (bank?.opening ?? 0) + (kfw?.opening ?? 0),
       }
     }
     const row = years[yearIndex]
-    row.payment += (bank?.payment || 0) + (kfw?.payment || 0)
+    row.payment += (bank?.totalPayment || bank?.payment || 0) + (kfw?.totalPayment || kfw?.payment || 0)
     row.interest += (bank?.interest || 0) + (kfw?.interest || 0)
     row.repayment += (bank?.repayment || 0) + (kfw?.repayment || 0)
+    row.extraRepayment += (bank?.extraRepayment || 0) + (kfw?.extraRepayment || 0)
     row.bankBalance = bank?.balance ?? 0
     row.kfwBalance = kfw?.balance ?? 0
     row.balance = row.bankBalance + row.kfwBalance
@@ -231,14 +251,18 @@ export function housingFinanceSummary(state, project) {
     principal: bankAmount,
     interestPct: project.bank?.interestPct,
     repaymentPct: project.bank?.repaymentPct,
-    targetMonths: Math.round(number(project.bank?.termYears) * 12),
+    termYears: project.bank?.termYears,
+    rateChanges: (project.rateChanges || []).filter(item => item.loan === 'bank'),
+    extraRepayments: (project.extraRepayments || []).filter(item => item.loan === 'bank'),
   })
   const kfwPlan = buildLoanSchedule({
     principal: kfwAmount,
     interestPct: project.kfw?.interestPct,
     repaymentPct: project.kfw?.repaymentPct,
     graceMonths: Math.round(number(project.kfw?.graceYears) * 12),
-    targetMonths: Math.round(number(project.kfw?.termYears) * 12),
+    termYears: project.kfw?.termYears,
+    rateChanges: (project.rateChanges || []).filter(item => item.loan === 'kfw'),
+    extraRepayments: (project.extraRepayments || []).filter(item => item.loan === 'kfw'),
   })
   const bankRate = bankPlan.firstRate
   const kfwRate = kfwPlan.firstRate
@@ -259,6 +283,7 @@ export function housingFinanceSummary(state, project) {
     bankPlan, kfwPlan, annualSchedule, residualAtFixed, payoffMonths,
     totalInterest: bankPlan.totalInterest + kfwPlan.totalInterest,
     totalPaid: bankPlan.totalPaid + kfwPlan.totalPaid,
+    totalExtraRepayment: bankPlan.totalExtraRepayment + kfwPlan.totalExtraRepayment,
   }
 }
 
@@ -337,6 +362,26 @@ export default function HousingFinance({ state, setState }) {
       return { ...current, housingFinance: { projects: remaining, activeProjectId: remaining[0]?.id || null } }
     })
   }
+
+  const addRateChange = () => updateActiveProject(item => ({
+    ...item,
+    rateChanges: [...(item.rateChanges || []), { id: crypto.randomUUID(), loan: 'bank', startYear: 2, monthlyRate: Math.round(summary?.bankPlan?.regularRate || 0) }],
+  }))
+  const updateRateChange = (id, patch) => updateActiveProject(item => ({
+    ...item,
+    rateChanges: (item.rateChanges || []).map(entry => entry.id === id ? { ...entry, ...patch } : entry),
+  }))
+  const removeRateChange = id => updateActiveProject(item => ({ ...item, rateChanges: (item.rateChanges || []).filter(entry => entry.id !== id) }))
+  const addExtraRepayment = () => updateActiveProject(item => ({
+    ...item,
+    extraRepayments: [...(item.extraRepayments || []), { id: crypto.randomUUID(), loan: 'bank', year: 1, amount: 5000 }],
+  }))
+  const updateExtraRepayment = (id, patch) => updateActiveProject(item => ({
+    ...item,
+    extraRepayments: (item.extraRepayments || []).map(entry => entry.id === id ? { ...entry, ...patch } : entry),
+  }))
+  const removeExtraRepayment = id => updateActiveProject(item => ({ ...item, extraRepayments: (item.extraRepayments || []).filter(entry => entry.id !== id) }))
+
 
   if (!project) return <Panel title="Wohnungsfinanzierung Pro" subtitle="Berechne eine konkrete Wohnung vom Kaufpreis bis zur vollständigen Tilgung.">
     <div className="housing-empty"><Building2 size={48}/><h3>Noch keine Finanzierung angelegt</h3><p>Lege dein erstes Projekt an. Deine aktuellen Vermögenswerte können automatisch als Eigenkapital übernommen werden.</p><button className="primary" onClick={addProject}><Plus size={18}/> Erste Finanzierung anlegen</button></div>
@@ -425,6 +470,33 @@ export default function HousingFinance({ state, setState }) {
         </div>
       </Panel>
 
+      <Panel title="Geplante Ratenänderungen" subtitle="Erhöhe oder senke die Monatsrate ab einem bestimmten Finanzierungsjahr" className="span-6">
+        <div className="finance-action-list">
+          {(project.rateChanges || []).length === 0 && <p className="finance-empty-note">Noch keine Ratenänderung geplant. Ohne Eintrag bleibt die berechnete Annuität konstant.</p>}
+          {(project.rateChanges || []).map(entry => <div className="finance-action-row" key={entry.id}>
+            <Field label="Darlehen"><select value={entry.loan || 'bank'} onChange={event => updateRateChange(entry.id, { loan: event.target.value })}><option value="bank">Bank</option><option value="kfw">KfW</option></select></Field>
+            <Field label="Ab Finanzierungsjahr"><NumberInput min={1} value={entry.startYear} onValueChange={value => updateRateChange(entry.id, { startYear: value })}/></Field>
+            <Field label="Neue Monatsrate" suffix="€"><NumberInput value={entry.monthlyRate} onValueChange={value => updateRateChange(entry.id, { monthlyRate: value })}/></Field>
+            <button className="icon-danger" title="Ratenänderung löschen" onClick={() => removeRateChange(entry.id)}><Trash2 size={18}/></button>
+          </div>)}
+        </div>
+        <button onClick={addRateChange}><Plus size={18}/> Ratenänderung hinzufügen</button>
+      </Panel>
+
+      <Panel title="Sondertilgungen" subtitle="Einmalige zusätzliche Tilgung am Ende des gewählten Finanzierungsjahres" className="span-6">
+        <div className="finance-action-list">
+          {(project.extraRepayments || []).length === 0 && <p className="finance-empty-note">Noch keine Sondertilgung eingetragen.</p>}
+          {(project.extraRepayments || []).map(entry => <div className="finance-action-row" key={entry.id}>
+            <Field label="Darlehen"><select value={entry.loan || 'bank'} onChange={event => updateExtraRepayment(entry.id, { loan: event.target.value })}><option value="bank">Bank</option><option value="kfw">KfW</option></select></Field>
+            <Field label="Finanzierungsjahr"><NumberInput min={1} value={entry.year} onValueChange={value => updateExtraRepayment(entry.id, { year: value })}/></Field>
+            <Field label="Betrag" suffix="€"><NumberInput value={entry.amount} onValueChange={value => updateExtraRepayment(entry.id, { amount: value })}/></Field>
+            <button className="icon-danger" title="Sondertilgung löschen" onClick={() => removeExtraRepayment(entry.id)}><Trash2 size={18}/></button>
+          </div>)}
+        </div>
+        <button onClick={addExtraRepayment}><Plus size={18}/> Sondertilgung hinzufügen</button>
+        {(summary.totalExtraRepayment > 0) && <p className="finance-summary-note">Im Modell berücksichtigt: <b>{euro(summary.totalExtraRepayment)}</b> Sondertilgungen.</p>}
+      </Panel>
+
       <Panel title="Monatliche Wohnungskosten" subtitle="Alle laufenden Kosten zusätzlich zu den Kreditraten" className="span-8">
         <div className="form-grid three housing-cost-form">
           {[
@@ -444,7 +516,7 @@ export default function HousingFinance({ state, setState }) {
           <div className="total"><span>Gesamt zu Beginn</span><b>{euro(summary.totalMonthly)}</b></div>
           {number(project.kfw.graceYears) > 0 && <div className="total secondary"><span>Nach KfW-Anlaufzeit</span><b>{euro(summary.totalMonthlyAfterGrace)}</b></div>}
         </div>
-        <p className="calculation-note">Die Annuität bleibt innerhalb der Modellrechnung konstant. Zinsen werden monatlich auf die jeweilige Restschuld berechnet. Änderungen des Zinssatzes nach der Zinsbindung folgen mit der Anschlussfinanzierung in einer späteren Version.</p>
+        <p className="calculation-note">Ohne geplante Ratenänderung bleibt die Annuität konstant. Ratenänderungen und Sondertilgungen werden monatsgenau berücksichtigt. Zinsen werden monatlich auf die jeweilige Restschuld berechnet. Änderungen des Zinssatzes nach der Zinsbindung folgen mit der Anschlussfinanzierung in einer späteren Version.</p>
       </Panel>
 
       <Panel title="Restschuldentwicklung" subtitle="Bank- und KfW-Darlehen zusammen" className="span-12">
@@ -459,9 +531,9 @@ export default function HousingFinance({ state, setState }) {
       <Panel title="Jährlicher Tilgungsplan" subtitle="Rate, Zins, Tilgung und Restschuld für jedes Finanzierungsjahr" className="span-12">
         <div className="table-scroll repayment-table-wrap">
           <table className="repayment-table">
-            <thead><tr><th>Jahr</th><th>Kalenderjahr</th><th>Gezahlte Raten</th><th>Zinsen</th><th>Tilgung</th><th>Bank-Restschuld</th><th>KfW-Restschuld</th><th>Gesamt-Restschuld</th></tr></thead>
+            <thead><tr><th>Jahr</th><th>Kalenderjahr</th><th>Gesamtzahlungen</th><th>Zinsen</th><th>Reguläre Tilgung</th><th>Sondertilgung</th><th>Bank-Restschuld</th><th>KfW-Restschuld</th><th>Gesamt-Restschuld</th></tr></thead>
             <tbody>{summary.annualSchedule.map(row => <tr key={row.year}>
-              <td><b>{row.year}</b></td><td>{row.calendarYear}</td><td>{euro(row.payment)}</td><td>{euro(row.interest)}</td><td>{euro(row.repayment)}</td><td>{euro(row.bankBalance)}</td><td>{euro(row.kfwBalance)}</td><td><b>{euro(row.balance)}</b></td>
+              <td><b>{row.year}</b></td><td>{row.calendarYear}</td><td>{euro(row.payment)}</td><td>{euro(row.interest)}</td><td>{euro(row.repayment)}</td><td>{euro(row.extraRepayment)}</td><td>{euro(row.bankBalance)}</td><td>{euro(row.kfwBalance)}</td><td><b>{euro(row.balance)}</b></td>
             </tr>)}</tbody>
           </table>
         </div>

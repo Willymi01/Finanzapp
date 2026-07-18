@@ -1,36 +1,17 @@
-# Meine Finanzzentrale V10.9.2cc – Wohnungsfinanzierung Pro
+# Meine Finanzzentrale – Version 10.9.3
 
-## Neu in 10.9.2cc
+## Neu in dieser Version
 
-- monatlich berechnetes Annuitätendarlehen für den Bankkredit
-- separater KfW-Tilgungsplan
-- KfW-Anlaufjahre werden als tilgungsfreie Zeit mit reiner Zinszahlung modelliert
-- exakte monatliche Startbelastung und Belastung nach der KfW-Anlaufzeit
-- Restschuld nach der Zinsbindung
-- rechnerische Gesamtlaufzeit
-- gesamte Zinskosten
-- Restschuld-Diagramm
-- jährlicher Tilgungsplan mit Rate, Zins, Tilgung und getrennter Restschuld von Bank und KfW
-- Finanzierungsbeginn pro Projekt
+Die Wohnungsfinanzierung unterstützt jetzt geplante Ratenänderungen und Sondertilgungen für Bank- und KfW-Darlehen.
 
-## Rechenmodell
-
-Die Monatsrate wird aus Darlehensbetrag, Sollzins und Anfangstilgung gebildet. Die Zinsen werden jeden Monat auf die verbleibende Restschuld berechnet. Der Tilgungsanteil steigt dadurch im Zeitverlauf. Bei KfW-Anlaufjahren werden zunächst nur Zinsen gezahlt; danach beginnt die reguläre Annuität.
-
-Die Berechnung ist ein Planungsmodell und ersetzt kein verbindliches Angebot einer Bank oder KfW. Gebühren, Auszahlungskurse, bereitstellungsfreie Zeiten, programmspezifische Tilgungszuschüsse sowie ein neuer Zinssatz nach Ende der Zinsbindung sind noch nicht enthalten.
+- Monatsrate ab einem frei wählbaren Finanzierungsjahr ändern
+- mehrere Ratenänderungen hintereinander planen
+- Sondertilgungen einem Finanzierungsjahr zuordnen
+- Bank oder KfW als Ziel auswählen
+- Auswirkungen auf Laufzeit, Gesamtzinsen und Restschuld sofort berechnen
+- Sondertilgungen separat im jährlichen Tilgungsplan ausweisen
+- bestehende Finanzierungsprojekte automatisch migrieren
 
 ## Installation
 
-1. ZIP entpacken.
-2. Dateien im GitHub-Repository ersetzen.
-3. Commit erstellen, zum Beispiel `Version 10.9.2cc Tilgungsplan`.
-4. Push ausführen und den erfolgreichen GitHub-Workflow abwarten.
-5. Auf PC und Handy im Cloud-Center prüfen, ob Version 10.9.2cc läuft.
-
-## Stabilitätsfix 10.9.2cc
-
-- Zahlenfelder lassen sich vollständig markieren und überschreiben.
-- Leere Zwischenzustände blockieren die Eingabe nicht mehr.
-- Dezimalwerte akzeptieren Punkt oder Komma.
-- Werte werden beim Verlassen des Feldes oder mit Enter übernommen.
-- Fokus, Cursor und Touch-Bedienung wurden abgesichert.
+Den Inhalt dieses Projektordners in das GitHub-Repository hochladen. Der enthaltene GitHub-Pages-Workflow baut und veröffentlicht die App automatisch. Nach erfolgreichem Workflow die installierte PWA über das Cloud-Center aktualisieren oder die Webseite mit Strg+F5 neu laden.

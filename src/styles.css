@@ -457,3 +457,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .housing-grid .form-grid.two{grid-template-columns:1fr}
   .housing-grid .loan-result-strip{grid-template-columns:1fr}
 }
+
+/* V10.9.3: geplante Ratenänderungen und Sondertilgungen */
+.finance-action-list{display:grid;gap:10px;margin-bottom:13px}
+.finance-action-row{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(130px,.8fr) minmax(170px,1.2fr) auto;gap:10px;align-items:end;padding:12px;border:1px solid var(--line);border-radius:12px;background:#10151a}
+.finance-action-row select{width:100%}
+.finance-action-row .icon-danger{height:42px;width:42px;padding:0;display:grid;place-items:center;color:#ff9b98;background:transparent}
+.finance-empty-note{margin:0;padding:13px;border:1px dashed var(--line);border-radius:11px;color:var(--muted)}
+.finance-summary-note{margin:12px 0 0;padding:11px;border-radius:10px;background:rgba(146,208,80,.08);border:1px solid rgba(146,208,80,.25)}
+@media(max-width:700px){.finance-action-row{grid-template-columns:1fr 1fr}.finance-action-row label:nth-child(3){grid-column:1/-1}.finance-action-row .icon-danger{width:100%;grid-column:1/-1}}
