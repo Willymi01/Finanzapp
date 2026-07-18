@@ -15,52 +15,30 @@ const parseNumberInput = value => {
 }
 
 function NumberInput({ value, onValueChange, min = 0, max, step = 'any', ...props }) {
-  const inputRef = useRef(null)
-  const [draft, setDraft] = useState(String(value ?? ''))
-
-  useEffect(() => {
-    if (document.activeElement === inputRef.current) return
-    setDraft(String(value ?? ''))
-  }, [value])
-
-  const clamp = parsed => Math.min(max == null ? parsed : Number(max), Math.max(Number(min ?? 0), parsed))
-  const commit = raw => {
-    const parsed = parseNumberInput(raw)
-    if (parsed === null) {
-      const fallback = clamp(0)
-      setDraft(String(fallback))
-      onValueChange(fallback)
-      return
-    }
-    const clamped = clamp(parsed)
-    setDraft(String(clamped))
-    onValueChange(clamped)
-  }
-
+  const safeValue = value === null || value === undefined ? '' : value
   return <input
     {...props}
-    ref={inputRef}
-    type="text"
+    type="number"
     inputMode="decimal"
-    value={draft}
-    onFocus={event => event.currentTarget.select()}
+    min={min}
+    max={max}
+    step={step}
+    value={safeValue}
     onChange={event => {
-      const raw = event.target.value
-      if (!/^\d*(?:[.,]\d*)?$/.test(raw)) return
-      setDraft(raw)
-      const parsed = parseNumberInput(raw)
-      if (parsed !== null) onValueChange(clamp(parsed))
-    }}
-    onBlur={event => commit(event.target.value)}
-    onKeyDown={event => {
-      if (event.key === 'Enter') {
-        commit(event.currentTarget.value)
-        event.currentTarget.blur()
+      const raw = event.currentTarget.value
+      if (raw === '') {
+        onValueChange('')
+        return
       }
+      const parsed = Number(raw)
+      if (!Number.isFinite(parsed)) return
+      const lower = min == null ? parsed : Math.max(Number(min), parsed)
+      const clamped = max == null ? lower : Math.min(Number(max), lower)
+      onValueChange(clamped)
     }}
-    aria-valuemin={min}
-    aria-valuemax={max}
-    data-step={step}
+    onBlur={event => {
+      if (event.currentTarget.value === '') onValueChange(Number(min || 0))
+    }}
   />
 }
 
@@ -120,16 +98,24 @@ export const createHousingFinanceProject = (state, index = 1) => ({
   createdAt: new Date().toISOString(),
 })
 
-export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, maxMonths = 720 }) {
+export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, targetMonths = 0, maxMonths = 720 }) {
   const amount = number(principal)
   const monthlyInterest = pct(interestPct) / 12
-  const regularRate = amount > 0 ? amount * (pct(interestPct) + pct(repaymentPct)) / 12 : 0
+  const repaymentRate = amount > 0 ? amount * (pct(interestPct) + pct(repaymentPct)) / 12 : 0
+  const amortisingMonths = Math.max(1, Math.round(number(targetMonths) - number(graceMonths)))
+  const targetRate = amount <= 0 || !targetMonths
+    ? 0
+    : monthlyInterest > 0
+      ? amount * monthlyInterest / (1 - Math.pow(1 + monthlyInterest, -amortisingMonths))
+      : amount / amortisingMonths
+  // Anfangstilgung und Wunschlaufzeit wirken beide: Die höhere erforderliche Rate gewinnt.
+  const regularRate = Math.max(repaymentRate, targetRate)
   let balance = amount
   let totalInterest = 0
   let totalPaid = 0
   const rows = []
 
-  if (amount <= 0) return { rows, regularRate: 0, firstRate: 0, payoffMonths: 0, totalInterest: 0, totalPaid: 0, residual: () => 0, paidOff: true }
+  if (amount <= 0) return { rows, regularRate: 0, firstRate: 0, payoffMonths: 0, totalInterest: 0, totalPaid: 0, residual: () => 0, paidOff: true, targetRate: 0, repaymentRate: 0 }
 
   for (let month = 1; month <= maxMonths && balance > 0.005; month += 1) {
     const opening = balance
@@ -161,6 +147,8 @@ export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceM
     totalPaid,
     residual,
     paidOff,
+    targetRate,
+    repaymentRate,
   }
 }
 
@@ -214,8 +202,10 @@ export function housingFinanceSummary(state, project) {
   )
   const purchaseCosts = percentageCosts + number(costs.renovation) + number(costs.furnishing) + number(costs.other)
   const totalCost = purchasePrice + purchaseCosts
-  const currentEquity = number(state.assets?.home) + (project.equity?.includePension ? number(state.assets?.pension) : 0) + (project.equity?.includeEmergency ? number(state.assets?.emergency) : 0)
-  const equity = project.equity?.useCurrent ? currentEquity : number(project.equity?.manualAmount)
+  const baseEquity = project.equity?.useCurrent ? number(state.assets?.home) : number(project.equity?.manualAmount)
+  const pensionEquity = project.equity?.includePension ? number(state.assets?.pension) : 0
+  const emergencyEquity = project.equity?.includeEmergency ? number(state.assets?.emergency) : 0
+  const equity = baseEquity + pensionEquity + emergencyEquity
   const financingNeed = Math.max(0, totalCost - equity)
   const kfwAmount = project.kfw?.enabled ? Math.min(financingNeed, number(project.kfw?.amount)) : 0
   const bankAmount = Math.max(0, financingNeed - kfwAmount)
@@ -224,12 +214,14 @@ export function housingFinanceSummary(state, project) {
     principal: bankAmount,
     interestPct: project.bank?.interestPct,
     repaymentPct: project.bank?.repaymentPct,
+    targetMonths: Math.round(number(project.bank?.termYears) * 12),
   })
   const kfwPlan = buildLoanSchedule({
     principal: kfwAmount,
     interestPct: project.kfw?.interestPct,
     repaymentPct: project.kfw?.repaymentPct,
     graceMonths: Math.round(number(project.kfw?.graceYears) * 12),
+    targetMonths: Math.round(number(project.kfw?.termYears) * 12),
   })
   const bankRate = bankPlan.firstRate
   const kfwRate = kfwPlan.firstRate
@@ -243,7 +235,7 @@ export function housingFinanceSummary(state, project) {
   const creditRateAfterGrace = bankPlan.regularRate + regularKfwRate
 
   return {
-    purchasePrice, purchaseCosts, totalCost, equity, financingNeed, kfwAmount, bankAmount,
+    purchasePrice, purchaseCosts, totalCost, equity, baseEquity, pensionEquity, emergencyEquity, financingNeed, kfwAmount, bankAmount,
     bankRate, kfwRate, regularKfwRate, creditRate: bankRate + kfwRate,
     creditRateAfterGrace, monthlyHousingCosts, totalMonthly: bankRate + kfwRate + monthlyHousingCosts,
     totalMonthlyAfterGrace: creditRateAfterGrace + monthlyHousingCosts,
@@ -285,29 +277,26 @@ export default function HousingFinance({ state, setState }) {
   const project = projects.find(item => item.id === activeId) || projects[0] || null
   const summary = useMemo(() => housingFinanceSummary(state, project), [state, project])
 
-  const updateRoot = value => setState(current => ({ ...current, housingFinance: { ...current.housingFinance, ...value } }))
-  const updateProject = patch => {
-    if (!project) return
-    setState(current => ({
+  const updateRoot = value => setState(current => ({
+    ...current,
+    housingFinance: { ...(current.housingFinance || {}), ...value },
+  }))
+  const updateActiveProject = updater => setState(current => {
+    const finance = current.housingFinance || { projects: [], activeProjectId: null }
+    const id = finance.activeProjectId || finance.projects?.[0]?.id
+    return {
       ...current,
       housingFinance: {
-        ...current.housingFinance,
-        projects: (current.housingFinance?.projects || []).map(item => item.id === project.id ? { ...item, ...patch } : item),
+        ...finance,
+        projects: (finance.projects || []).map(item => item.id === id ? updater(item) : item),
       },
-    }))
-  }
-  const updateSection = (section, field, value) => {
-    if (!project) return
-    setState(current => ({
-      ...current,
-      housingFinance: {
-        ...current.housingFinance,
-        projects: (current.housingFinance?.projects || []).map(item => item.id === project.id
-          ? { ...item, [section]: { ...(item[section] || {}), [field]: value } }
-          : item),
-      },
-    }))
-  }
+    }
+  })
+  const updateProject = patch => updateActiveProject(item => ({ ...item, ...patch }))
+  const updateSection = (section, field, value) => updateActiveProject(item => ({
+    ...item,
+    [section]: { ...(item[section] || {}), [field]: value },
+  }))
   const addProject = () => {
     const item = createHousingFinanceProject(state, projects.length + 1)
     setState(current => ({
@@ -358,10 +347,15 @@ export default function HousingFinance({ state, setState }) {
           <Field label="Kaufpreis" suffix="€"><NumberInput value={project.property.purchasePrice} onValueChange={value => updateSection('property','purchasePrice',value)}/></Field>
           <Field label="Wohnfläche" suffix="m²"><NumberInput value={project.property.livingArea} onValueChange={value => updateSection('property','livingArea',value)}/></Field>
           <Field label="Baujahr"><NumberInput min={1800} max={2100} value={project.property.buildYear} onValueChange={value => updateSection('property','buildYear',value)}/></Field>
-          <label className="check-field"><input type="checkbox" checked={project.equity.useCurrent} onChange={event => updateSection('equity','useCurrent',event.target.checked)}/><span>Aktuelles Vermögen automatisch übernehmen</span></label>
+          <label className="check-field"><input type="checkbox" checked={Boolean(project.equity.useCurrent)} onChange={event => updateSection('equity','useCurrent',event.target.checked)}/><span>Aktuelles Vermögen automatisch übernehmen</span></label>
           {!project.equity.useCurrent && <Field label="Eigenkapital manuell" suffix="€"><NumberInput value={project.equity.manualAmount} onValueChange={value => updateSection('equity','manualAmount',value)}/></Field>}
-          <label className="check-field"><input type="checkbox" checked={project.equity.includePension} onChange={event => updateSection('equity','includePension',event.target.checked)}/><span>Rentenvermögen einbeziehen</span></label>
-          <label className="check-field"><input type="checkbox" checked={project.equity.includeEmergency} onChange={event => updateSection('equity','includeEmergency',event.target.checked)}/><span>Notgroschen einbeziehen</span></label>
+          <label className="check-field"><input type="checkbox" checked={Boolean(project.equity.includePension)} onChange={event => updateSection('equity','includePension',event.target.checked)}/><span>Rentenvermögen einbeziehen</span></label>
+          <label className="check-field"><input type="checkbox" checked={Boolean(project.equity.includeEmergency)} onChange={event => updateSection('equity','includeEmergency',event.target.checked)}/><span>Notgroschen einbeziehen</span></label>
+        </div>
+        <div className="equity-breakdown">
+          <span>Basis-Eigenkapital <b>{euro(summary.baseEquity)}</b></span>
+          <span>Rentenvermögen <b>{euro(summary.pensionEquity)}</b></span>
+          <span>Notgroschen <b>{euro(summary.emergencyEquity)}</b></span>
         </div>
       </Panel>
 
@@ -377,7 +371,7 @@ export default function HousingFinance({ state, setState }) {
         </div>
       </Panel>
 
-      <Panel title="Bankdarlehen" subtitle={`Automatisch verbleibender Betrag: ${euro(summary.bankAmount)}`} className="span-6">
+      <Panel title="Bankdarlehen" subtitle={`Automatisch verbleibender Betrag: ${euro(summary.bankAmount)} · Rate reagiert auf Tilgung und Wunschlaufzeit`} className="span-6">
         <div className="loan-heading"><Landmark size={22}/><strong>Monatliche Annuität: {euro(summary.bankPlan.regularRate)}</strong></div>
         <div className="form-grid two">
           <Field label="Sollzins" suffix="%"><NumberInput value={project.bank.interestPct} onValueChange={value => updateSection('bank','interestPct',value)} step="0.01"/></Field>
@@ -388,8 +382,8 @@ export default function HousingFinance({ state, setState }) {
         <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.bankPlan.residual(number(project.bank.fixedYears) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.bankPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.bankPlan.payoffMonths)}</b></span></div>
       </Panel>
 
-      <Panel title="KfW-Darlehen" subtitle="Tilgungsfreie Anlaufjahre werden als reine Zinszahlung berechnet" className="span-6">
-        <label className="check-field kfw-switch"><input type="checkbox" checked={project.kfw.enabled} onChange={event => updateSection('kfw','enabled',event.target.checked)}/><span>KfW-Darlehen verwenden</span></label>
+      <Panel title="KfW-Darlehen" subtitle="Anlaufjahre, Anfangstilgung und Wunschlaufzeit werden gemeinsam berechnet" className="span-6">
+        <label className="check-field kfw-switch"><input type="checkbox" checked={Boolean(project.kfw.enabled)} onChange={event => updateSection('kfw','enabled',event.target.checked)}/><span>KfW-Darlehen verwenden</span></label>
         <div className={`loan-fields ${project.kfw.enabled ? '' : 'disabled'}`}>
           <div className="loan-heading"><Home size={22}/><strong>{number(project.kfw.graceYears) > 0 ? `Start ${euro(summary.kfwRate)} · danach ${euro(summary.regularKfwRate)}` : `Monatliche Annuität: ${euro(summary.regularKfwRate)}`}</strong></div>
           <div className="form-grid two">

@@ -1,5 +1,5 @@
-export const APP_VERSION = '10.9.1b'
-export const APP_BUILD = '2026-07-18-housing-finance-foundation'
+export const APP_VERSION = '10.9.2'
+export const APP_BUILD = '2026-07-18-housing-finance-input-calculation-fix'
 
 const DEVICE_ID_KEY = 'finance_device_id'
 const DEVICE_NAME_KEY = 'finance_device_name'

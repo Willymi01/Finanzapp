@@ -434,3 +434,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .input-suffix-wrap input{position:relative;z-index:1;text-align:left;caret-color:#111;pointer-events:auto;user-select:text}
 .input-suffix-wrap>span{z-index:2;background:linear-gradient(90deg,rgba(255,243,187,0),#fff3bb 28%);padding-left:10px}
 .input-suffix-wrap input:focus{box-shadow:0 0 0 3px rgba(146,208,80,.28);border-color:#92d050}
+
+/* Version 10.9.2 – stabile Eingaben und nachvollziehbares Eigenkapital */
+.equity-breakdown{display:grid;gap:7px;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#10151a}
+.equity-breakdown span{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:12px}.equity-breakdown b{color:var(--text)}
+.input-suffix-wrap input[type="number"]{appearance:textfield;-moz-appearance:textfield;padding-right:62px}
+.input-suffix-wrap input[type="number"]::-webkit-inner-spin-button,.input-suffix-wrap input[type="number"]::-webkit-outer-spin-button{opacity:.65}
