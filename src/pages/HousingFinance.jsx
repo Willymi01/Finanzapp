@@ -98,24 +98,23 @@ export const createHousingFinanceProject = (state, index = 1) => ({
   createdAt: new Date().toISOString(),
 })
 
-export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, targetMonths = 0, maxMonths = 720 }) {
+export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, termYears = 0, maxMonths = 720 }) {
   const amount = number(principal)
   const monthlyInterest = pct(interestPct) / 12
-  const repaymentRate = amount > 0 ? amount * (pct(interestPct) + pct(repaymentPct)) / 12 : 0
-  const amortisingMonths = Math.max(1, Math.round(number(targetMonths) - number(graceMonths)))
-  const targetRate = amount <= 0 || !targetMonths
+  const initialRate = amount > 0 ? amount * (pct(interestPct) + pct(repaymentPct)) / 12 : 0
+  const requestedMonths = Math.max(0, Math.round(number(termYears) * 12) - Math.round(number(graceMonths)))
+  const termRate = amount <= 0 || requestedMonths <= 0
     ? 0
     : monthlyInterest > 0
-      ? amount * monthlyInterest / (1 - Math.pow(1 + monthlyInterest, -amortisingMonths))
-      : amount / amortisingMonths
-  // Anfangstilgung und Wunschlaufzeit wirken beide: Die höhere erforderliche Rate gewinnt.
-  const regularRate = Math.max(repaymentRate, targetRate)
+      ? amount * monthlyInterest / (1 - Math.pow(1 + monthlyInterest, -requestedMonths))
+      : amount / requestedMonths
+  const regularRate = Math.max(initialRate, termRate)
   let balance = amount
   let totalInterest = 0
   let totalPaid = 0
   const rows = []
 
-  if (amount <= 0) return { rows, regularRate: 0, firstRate: 0, payoffMonths: 0, totalInterest: 0, totalPaid: 0, residual: () => 0, paidOff: true, targetRate: 0, repaymentRate: 0 }
+  if (amount <= 0) return { rows, regularRate: 0, firstRate: 0, payoffMonths: 0, totalInterest: 0, totalPaid: 0, residual: () => 0, paidOff: true }
 
   for (let month = 1; month <= maxMonths && balance > 0.005; month += 1) {
     const opening = balance
@@ -147,8 +146,6 @@ export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceM
     totalPaid,
     residual,
     paidOff,
-    targetRate,
-    repaymentRate,
   }
 }
 
@@ -281,17 +278,26 @@ export default function HousingFinance({ state, setState }) {
     ...current,
     housingFinance: { ...(current.housingFinance || {}), ...value },
   }))
-  const updateActiveProject = updater => setState(current => {
-    const finance = current.housingFinance || { projects: [], activeProjectId: null }
-    const id = finance.activeProjectId || finance.projects?.[0]?.id
-    return {
-      ...current,
-      housingFinance: {
-        ...finance,
-        projects: (finance.projects || []).map(item => item.id === id ? updater(item) : item),
-      },
-    }
-  })
+  const updateActiveProject = updater => {
+    if (!project?.id) return
+    const displayedProjectId = project.id
+    setState(current => {
+      const finance = current.housingFinance || { projects: [], activeProjectId: null }
+      const currentProjects = finance.projects || []
+      const targetId = currentProjects.some(item => item.id === displayedProjectId)
+        ? displayedProjectId
+        : currentProjects[0]?.id
+      if (!targetId) return current
+      return {
+        ...current,
+        housingFinance: {
+          ...finance,
+          activeProjectId: targetId,
+          projects: currentProjects.map(item => item.id === targetId ? updater(item) : item),
+        },
+      }
+    })
+  }
   const updateProject = patch => updateActiveProject(item => ({ ...item, ...patch }))
   const updateSection = (section, field, value) => updateActiveProject(item => ({
     ...item,

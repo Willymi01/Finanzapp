@@ -1,7 +1,7 @@
 {
   "name": "meine-finanzzentrale",
   "private": true,
-  "version": "10.9.2",
+  "version": "10.9.2-beta.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
