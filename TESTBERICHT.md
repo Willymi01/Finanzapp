@@ -1,14 +1,12 @@
-# Testbericht V10.9.0
+# Testbericht V10.9.1
 
-Durchgeführt am 18.07.2026:
+- Produktionsbuild mit Vite ausgeführt
+- bestehende V10.9.0-Projekte bleiben durch optionale Felder kompatibel
+- Bankdarlehen mit monatlicher Zins- und Tilgungsaufteilung getestet
+- KfW-Darlehen mit und ohne tilgungsfreie Anlaufjahre getestet
+- Restschuld nach Zinsbindung getestet
+- vollständige Laufzeit bis maximal 60 Jahre getestet
+- Jahresaggregation und kombinierte Restschuld geprüft
+- Cloud-State enthält weiterhin das vollständige Finanzierungsprojekt
 
-- `npm ci` erfolgreich
-- `npm run build` erfolgreich
-- React/Vite-Produktionsbuild ohne Fehler
-- PWA-Service-Worker erfolgreich erzeugt
-- neue Route/Lasche in Desktop- und Mobilnavigation eingebunden
-- Finanzierungsprojekte im zentralen State und damit im Cloud-Fingerprint enthalten
-- Schema-Migration auf Version 10 ergänzt
-- bestehende Daten werden durch `normaliseState()` weiter übernommen
-
-Hinweis: Die Raten in V10.9.0 sind bewusst eine erste Annuitäten-Näherung. Der vollständige Tilgungsplan folgt in V10.9.1.
+Hinweis: Das Modell verwendet den eingegebenen Sollzins über die gesamte Simulation. Eine Anschlussfinanzierung mit verändertem Zinssatz folgt später.

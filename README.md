@@ -1,38 +1,28 @@
-# Meine Finanzzentrale V10.9.0 – Wohnungsfinanzierung Pro
+# Meine Finanzzentrale V10.9.1 – Wohnungsfinanzierung Pro
 
-## Neu
+## Neu in 10.9.1
 
-Eine neue eigene Lasche **Wohnungsfinanzierung** für konkrete Kaufobjekte.
+- monatlich berechnetes Annuitätendarlehen für den Bankkredit
+- separater KfW-Tilgungsplan
+- KfW-Anlaufjahre werden als tilgungsfreie Zeit mit reiner Zinszahlung modelliert
+- exakte monatliche Startbelastung und Belastung nach der KfW-Anlaufzeit
+- Restschuld nach der Zinsbindung
+- rechnerische Gesamtlaufzeit
+- gesamte Zinskosten
+- Restschuld-Diagramm
+- jährlicher Tilgungsplan mit Rate, Zins, Tilgung und getrennter Restschuld von Bank und KfW
+- Finanzierungsbeginn pro Projekt
 
-Enthalten:
+## Rechenmodell
 
-- mehrere getrennte Finanzierungsprojekte
-- Objektdaten: Kaufpreis, Wohnfläche, Adresse und Baujahr
-- automatisches oder manuelles Eigenkapital
-- wahlweise Einbezug von Rentenvermögen und Notgroschen
-- detaillierte Kaufnebenkosten
-- Bankdarlehen mit Sollzins, Anfangstilgung, Zinsbindung und Laufzeit
-- separates KfW-Darlehen
-- monatliche Wohnungskosten wie Hausgeld, Strom, Heizung, Rücklagen und Grundsteuer
-- Übersicht zu Gesamtkosten, Finanzierungsbedarf und Monatsbelastung
-- aktive Finanzierung auf dem Dashboard
-- vollständige Speicherung und Cloud-Synchronisierung als Teil des zentralen App-Zustands
+Die Monatsrate wird aus Darlehensbetrag, Sollzins und Anfangstilgung gebildet. Die Zinsen werden jeden Monat auf die verbleibende Restschuld berechnet. Der Tilgungsanteil steigt dadurch im Zeitverlauf. Bei KfW-Anlaufjahren werden zunächst nur Zinsen gezahlt; danach beginnt die reguläre Annuität.
 
-## Berechnungsstand
-
-Version 10.9.0 ist das stabile Grundgerüst. Die Kreditraten werden zunächst als Orientierung aus Sollzins plus Anfangstilgung berechnet.
-
-Für Version 10.9.1 geplant:
-
-- exakter Annuitäten- und Tilgungsplan
-- jährliche Zinsen und Tilgung
-- Restschuld
-- tatsächliche Laufzeit von Bank- und KfW-Darlehen
+Die Berechnung ist ein Planungsmodell und ersetzt kein verbindliches Angebot einer Bank oder KfW. Gebühren, Auszahlungskurse, bereitstellungsfreie Zeiten, programmspezifische Tilgungszuschüsse sowie ein neuer Zinssatz nach Ende der Zinsbindung sind noch nicht enthalten.
 
 ## Installation
 
 1. ZIP entpacken.
-2. Dateien in das GitHub-Repository kopieren und ersetzen.
-3. Commit erstellen, zum Beispiel `Version 10.9.0 Wohnungsfinanzierung Pro`.
-4. Pushen und auf den grünen GitHub-Actions-Workflow warten.
-5. Die App auf PC und Handy über das Cloud-Center aktualisieren.
+2. Dateien im GitHub-Repository ersetzen.
+3. Commit erstellen, zum Beispiel `Version 10.9.1 Tilgungsplan`.
+4. Push ausführen und den erfolgreichen GitHub-Workflow abwarten.
+5. Auf PC und Handy im Cloud-Center prüfen, ob Version 10.9.1 läuft.
