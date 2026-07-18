@@ -1,4 +1,4 @@
-export const APP_VERSION = '10.9.1a'
+export const APP_VERSION = '10.9.1b'
 export const APP_BUILD = '2026-07-18-housing-finance-foundation'
 
 const DEVICE_ID_KEY = 'finance_device_id'

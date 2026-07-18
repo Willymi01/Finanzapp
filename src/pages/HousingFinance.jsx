@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Building2, Plus, Trash2, Landmark, Home, CalendarClock, TrendingDown } from 'lucide-react'
 import { MetricCard, Panel } from '../components/Cards'
 import { euro } from '../lib/calculations'
@@ -15,34 +15,41 @@ const parseNumberInput = value => {
 }
 
 function NumberInput({ value, onValueChange, min = 0, max, step = 'any', ...props }) {
+  const inputRef = useRef(null)
   const [draft, setDraft] = useState(String(value ?? ''))
 
   useEffect(() => {
-    const active = document.activeElement
-    if (active !== null && active === props.inputRef?.current) return
+    if (document.activeElement === inputRef.current) return
     setDraft(String(value ?? ''))
   }, [value])
 
+  const clamp = parsed => Math.min(max == null ? parsed : Number(max), Math.max(Number(min ?? 0), parsed))
   const commit = raw => {
     const parsed = parseNumberInput(raw)
     if (parsed === null) {
-      setDraft(String(value ?? ''))
+      const fallback = clamp(0)
+      setDraft(String(fallback))
+      onValueChange(fallback)
       return
     }
-    const clamped = Math.min(max == null ? parsed : Number(max), Math.max(Number(min ?? 0), parsed))
+    const clamped = clamp(parsed)
     setDraft(String(clamped))
     onValueChange(clamped)
   }
 
   return <input
     {...props}
+    ref={inputRef}
     type="text"
     inputMode="decimal"
     value={draft}
     onFocus={event => event.currentTarget.select()}
     onChange={event => {
       const raw = event.target.value
-      if (/^\d*(?:[.,]\d*)?$/.test(raw)) setDraft(raw)
+      if (!/^\d*(?:[.,]\d*)?$/.test(raw)) return
+      setDraft(raw)
+      const parsed = parseNumberInput(raw)
+      if (parsed !== null) onValueChange(clamp(parsed))
     }}
     onBlur={event => commit(event.target.value)}
     onKeyDown={event => {
@@ -289,7 +296,18 @@ export default function HousingFinance({ state, setState }) {
       },
     }))
   }
-  const updateSection = (section, field, value) => updateProject({ [section]: { ...project[section], [field]: value } })
+  const updateSection = (section, field, value) => {
+    if (!project) return
+    setState(current => ({
+      ...current,
+      housingFinance: {
+        ...current.housingFinance,
+        projects: (current.housingFinance?.projects || []).map(item => item.id === project.id
+          ? { ...item, [section]: { ...(item[section] || {}), [field]: value } }
+          : item),
+      },
+    }))
+  }
   const addProject = () => {
     const item = createHousingFinanceProject(state, projects.length + 1)
     setState(current => ({

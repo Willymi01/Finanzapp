@@ -1,6 +1,6 @@
-# Meine Finanzzentrale V10.9.1a – Wohnungsfinanzierung Pro
+# Meine Finanzzentrale V10.9.1b – Wohnungsfinanzierung Pro
 
-## Neu in 10.9.1a
+## Neu in 10.9.1b
 
 - monatlich berechnetes Annuitätendarlehen für den Bankkredit
 - separater KfW-Tilgungsplan
@@ -23,11 +23,11 @@ Die Berechnung ist ein Planungsmodell und ersetzt kein verbindliches Angebot ein
 
 1. ZIP entpacken.
 2. Dateien im GitHub-Repository ersetzen.
-3. Commit erstellen, zum Beispiel `Version 10.9.1a Tilgungsplan`.
+3. Commit erstellen, zum Beispiel `Version 10.9.1b Tilgungsplan`.
 4. Push ausführen und den erfolgreichen GitHub-Workflow abwarten.
-5. Auf PC und Handy im Cloud-Center prüfen, ob Version 10.9.1a läuft.
+5. Auf PC und Handy im Cloud-Center prüfen, ob Version 10.9.1b läuft.
 
-## Stabilitätsfix 10.9.1a
+## Stabilitätsfix 10.9.1b
 
 - Zahlenfelder lassen sich vollständig markieren und überschreiben.
 - Leere Zwischenzustände blockieren die Eingabe nicht mehr.
