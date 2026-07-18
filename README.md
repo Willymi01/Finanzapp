@@ -1,38 +1,38 @@
-# Meine Finanzzentrale V10.8.1 – Cloud-Konsistenz-Fix
+# Meine Finanzzentrale V10.9.0 – Wohnungsfinanzierung Pro
 
-Diese Version behebt den Fall, dass PC und Handy „Alles synchron“ anzeigen, aber unterschiedliche Ergebnisse darstellen.
+## Neu
 
-## Behoben
+Eine neue eigene Lasche **Wohnungsfinanzierung** für konkrete Kaufobjekte.
 
-- Das Cloud-Center zeigt jetzt die **tatsächlich laufende App-Version** des Geräts an – nicht nur die Version, mit der der Datenstand gespeichert wurde.
-- Unterschiedliche App-Versionen werden deutlich gewarnt.
-- Mit **„App jetzt aktualisieren“** werden alte Service-Worker- und Cache-Dateien entfernt und die aktuelle GitHub-Pages-Version neu geladen.
-- Die PWA prüft regelmäßig auf neue Versionen und aktiviert Updates automatisch.
-- Der Datenvergleich zeigt neben der Anzahl auch die Gesamtsumme der Sonderzahlungen.
-- Die alte Pauschale `specialAnnual` wurde aus dem Datenmodell entfernt.
-- Der Finanzcoach berücksichtigt für den aktuellen Monat echte Sonderzahlungen statt nur die normale Sparrate.
+Enthalten:
 
-## Nach dem Deployment
+- mehrere getrennte Finanzierungsprojekte
+- Objektdaten: Kaufpreis, Wohnfläche, Adresse und Baujahr
+- automatisches oder manuelles Eigenkapital
+- wahlweise Einbezug von Rentenvermögen und Notgroschen
+- detaillierte Kaufnebenkosten
+- Bankdarlehen mit Sollzins, Anfangstilgung, Zinsbindung und Laufzeit
+- separates KfW-Darlehen
+- monatliche Wohnungskosten wie Hausgeld, Strom, Heizung, Rücklagen und Grundsteuer
+- Übersicht zu Gesamtkosten, Finanzierungsbedarf und Monatsbelastung
+- aktive Finanzierung auf dem Dashboard
+- vollständige Speicherung und Cloud-Synchronisierung als Teil des zentralen App-Zustands
 
-1. Dateien ersetzen, committen und pushen.
-2. Warten, bis GitHub Actions grün ist.
-3. Auf PC **und** Handy das Cloud-Center öffnen.
-4. Auf jedem Gerät einmal **„App jetzt aktualisieren“** drücken, falls eine Versionswarnung erscheint.
-5. Danach muss auf beiden Geräten **Laufende App 10.8.1** stehen.
-6. Anschließend den neueren Datenstand hochladen bzw. übernehmen.
+## Berechnungsstand
 
-Die Sonderzahlungen selbst bleiben Teil des zentralen App-Zustands und werden vollständig über Supabase synchronisiert.
+Version 10.9.0 ist das stabile Grundgerüst. Die Kreditraten werden zunächst als Orientierung aus Sollzins plus Anfangstilgung berechnet.
 
-# Meine Finanzzentrale V10.8 – Cloud Center
+Für Version 10.9.1 geplant:
 
-Neu:
-- Transparenter Cloud-Status: alles synchron, lokale Änderungen oder neuerer Cloud-Stand.
-- Vergleich von PC/Handy und Cloud mit Zeitstempel, Gerätename, App-Version und Revision.
-- Vergleich der Anzahl von Sparplan-Monaten, Sonderzahlungen, Zwischenständen, Immobilien und Dokumenten.
-- Bewusste Aktionen: lokalen Stand hochladen oder Cloud-Stand übernehmen.
-- Automatische Sicherung vor dem Ersetzen lokaler Daten.
-- Auto-Sync überschreibt keinen eindeutig neueren Cloud-Stand.
-- Dashboard-Karte mit aktuellem Cloud-Status.
-- Sonderzahlungen bleiben Teil des zentralen App-States und werden vollständig mit `app_state` synchronisiert.
+- exakter Annuitäten- und Tilgungsplan
+- jährliche Zinsen und Tilgung
+- Restschuld
+- tatsächliche Laufzeit von Bank- und KfW-Darlehen
 
-Update: Dateien ins Repository kopieren, ersetzen, committen und pushen. Danach App auf PC und Handy vollständig neu laden.
+## Installation
+
+1. ZIP entpacken.
+2. Dateien in das GitHub-Repository kopieren und ersetzen.
+3. Commit erstellen, zum Beispiel `Version 10.9.0 Wohnungsfinanzierung Pro`.
+4. Pushen und auf den grünen GitHub-Actions-Workflow warten.
+5. Die App auf PC und Handy über das Cloud-Center aktualisieren.

@@ -1,5 +1,5 @@
-export const APP_VERSION = '10.8.1'
-export const APP_BUILD = '2026-07-17-cloud-consistency-fix'
+export const APP_VERSION = '10.9.0'
+export const APP_BUILD = '2026-07-18-housing-finance-foundation'
 
 const DEVICE_ID_KEY = 'finance_device_id'
 const DEVICE_NAME_KEY = 'finance_device_name'
@@ -42,7 +42,8 @@ export function dataSummary(state){
     sonderzahlungenSumme:specialPayments.reduce((sum,item)=>sum+Math.max(0,Number(item.amount||0)),0),
     zwischenstaende:(state?.snapshots||[]).length,
     immobilien:(state?.properties||[]).length,
-    dokumente:(state?.documents||[]).length
+    dokumente:(state?.documents||[]).length,
+    finanzierungen:(state?.housingFinance?.projects||[]).length
   }
 }
 

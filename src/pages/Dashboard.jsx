@@ -5,6 +5,7 @@ import {
   monthsUntilDate, savingsRate, currentGoalProgress, nextCapitalMilestone,
   planStatus, coachMessages, financeCoachAnalysis, plannedContributionForDate
 } from '../lib/calculations'
+import { housingFinanceSummary } from './HousingFinance'
 
 const greeting=()=>{
   const hour=new Date().getHours()
@@ -26,6 +27,8 @@ export default function Dashboard({ state, cloud }) {
   const status = planStatus(state)
   const messages = coachMessages(state)
   const coachAnalysis = financeCoachAnalysis(state)
+  const activeHousingProject = (state.housingFinance?.projects || []).find(item=>item.id===state.housingFinance?.activeProjectId) || state.housingFinance?.projects?.[0]
+  const activeHousingSummary = housingFinanceSummary(state, activeHousingProject)
   const journeyDone = Object.entries(state.purchaseJourney||{}).filter(([key,value])=>key!=='notes'&&value===true).length
 
   return <>
@@ -69,6 +72,15 @@ export default function Dashboard({ state, cloud }) {
     </div>
 
     <div className="content-grid">
+      {activeHousingProject&&activeHousingSummary&&<Panel title="Aktive Wohnungsfinanzierung" subtitle={activeHousingProject.name} className="span-12 housing-dashboard-panel">
+        <div className="dashboard-finance housing-dashboard-grid">
+          <div><span>Kaufpreis</span><b>{euro(activeHousingSummary.purchasePrice)}</b></div>
+          <div><span>Eigenkapital</span><b>{euro(activeHousingSummary.equity)}</b></div>
+          <div><span>Finanzierungsbedarf</span><b>{euro(activeHousingSummary.financingNeed)}</b></div>
+          <div><span>Gesamtbelastung</span><b>{euro(activeHousingSummary.totalMonthly)}</b></div>
+        </div>
+      </Panel>}
+
       <Panel title="Vermögensentwicklung" subtitle="Prognose bis zum Kaufzeitpunkt" className="span-8">
         <SimpleChart values={plan.map(x=>x.total)} goal={state.project.goal}/>
         <div className="chart-footer">

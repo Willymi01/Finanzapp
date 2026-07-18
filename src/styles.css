@@ -399,3 +399,23 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .cloud-version-warning{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 18px;border:1px solid rgba(255,184,77,.42);border-radius:16px;background:rgba(255,184,77,.09)}
 .cloud-version-warning div{display:grid;gap:4px}.cloud-version-warning span{color:var(--muted);line-height:1.45}.cloud-version-warning button{white-space:nowrap}
 @media(max-width:700px){.cloud-version-warning{align-items:stretch;flex-direction:column}.cloud-version-warning button{width:100%}}
+
+/* Version 10.9.0 – Wohnungsfinanzierung Pro */
+.housing-project-bar{display:flex;align-items:end;gap:12px;margin-bottom:14px;padding:14px 16px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,var(--surface),var(--surface2))}
+.housing-project-bar>div{display:grid;gap:5px;min-width:260px;flex:1}.housing-project-bar span{font-size:12px;color:var(--muted)}
+.housing-project-bar select{width:100%}.housing-project-bar button{display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.housing-title-edit{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(300px,1.3fr);gap:12px;margin-bottom:14px}
+.housing-metrics{margin-bottom:14px}.housing-grid{align-items:start}
+.input-suffix-wrap{position:relative}.input-suffix-wrap input{width:100%;padding-right:74px}.input-suffix-wrap>span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.check-field{display:flex!important;align-items:center;gap:10px;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025)}
+.check-field input{width:19px;height:19px;min-height:0;flex:none}.check-field span{font-size:13px;line-height:1.35}
+.loan-heading{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:11px 13px;border-radius:11px;background:rgba(146,208,80,.08);color:var(--text)}
+.loan-fields.disabled{opacity:.45;pointer-events:none}.kfw-switch{margin-bottom:14px}
+.housing-cost-form{grid-template-columns:repeat(3,minmax(0,1fr))}
+.housing-monthly-breakdown{display:grid;gap:8px}.housing-monthly-breakdown>div{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid var(--line)}.housing-monthly-breakdown .total{margin-top:4px;padding:14px;border:1px solid rgba(146,208,80,.28);border-radius:12px;background:rgba(146,208,80,.08)}.housing-monthly-breakdown .total b{font-size:19px;color:var(--green)}
+.calculation-note{margin:14px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.housing-empty{display:grid;justify-items:center;text-align:center;gap:10px;padding:34px 20px}.housing-empty svg{color:var(--green)}.housing-empty h3,.housing-empty p{margin:0}.housing-empty p{max-width:590px;color:var(--muted);line-height:1.55}.housing-empty button{display:inline-flex;align-items:center;gap:8px;margin-top:8px}
+.housing-dashboard-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.housing-cost-form{grid-template-columns:repeat(2,minmax(0,1fr))}.housing-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.housing-project-bar{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.housing-project-bar>div{grid-column:1/-1;min-width:0}.housing-project-bar button{width:100%}.housing-title-edit{grid-template-columns:1fr}.housing-cost-form{grid-template-columns:1fr}.housing-grid .panel{margin-bottom:0}.housing-dashboard-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:430px){.housing-project-bar{grid-template-columns:1fr}.housing-project-bar>div{grid-column:auto}.housing-dashboard-grid{grid-template-columns:1fr}}

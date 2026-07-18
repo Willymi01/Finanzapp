@@ -1,5 +1,5 @@
 export const defaultState = {
-  schemaVersion: 8,
+  schemaVersion: 10,
   project: {
     start: '2026-07-01',
     target: '2031-07-01',
@@ -46,6 +46,7 @@ export const defaultState = {
   specialPayments: [],
   properties: [],
   documents: [],
+  housingFinance: { projects: [], activeProjectId: null },
   purchaseJourney: {
     equityPrepared: false,
     financingConfirmed: false,

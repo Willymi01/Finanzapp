@@ -14,11 +14,12 @@ import Documents from './pages/Documents'
 import Timeline from './pages/Timeline'
 import Statistics from './pages/Statistics'
 import Coach from './pages/Coach'
+import HousingFinance from './pages/HousingFinance'
 import { loadState, saveState, createLocalBackup, normaliseState } from './lib/storage'
 import { configured, supabase } from './lib/supabase'
 import { APP_VERSION, compareVersions, dataFingerprint, dataSummary, detectDeviceName, formatSyncTime, getDeviceId, setDeviceName, withLocalMeta } from './lib/sync'
 
-const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',timeline:'Timeline',statistics:'Statistiken',coach:'Finanzcoach',assets:'Vermögen',financing:'Finanzierung',journey:'Mein Wohnungskauf',properties:'Wohnungen',documents:'Dokumente',cloud:'Cloud-Center',settings:'Einstellungen'}
+const titles={dashboard:'Dashboard',budget:'Finanzplan',savings:'Sparplan',timeline:'Timeline',statistics:'Statistiken',coach:'Finanzcoach',assets:'Vermögen',financing:'Finanzierung',journey:'Mein Wohnungskauf',properties:'Wohnungen',documents:'Dokumente',housingFinance:'Wohnungsfinanzierung',cloud:'Cloud-Center',settings:'Einstellungen'}
 
 export default function App(){
   const [active,setActive]=useState('dashboard')
@@ -149,7 +150,7 @@ export default function App(){
   }),[configured,email,password,user,autoSync,state,cloudProfile,cloudBusy,cloudError,sameData,cloudNewer,localNewer,deviceNameState,syncStatus,appOutdated,appVersionDifferent])
 
   const props={state,setState}
-  const pages={dashboard:<Dashboard {...props} cloud={cloud}/>,budget:<Budget {...props}/>,savings:<Savings {...props}/>,timeline:<Timeline {...props}/>,statistics:<Statistics {...props}/>,coach:<Coach {...props}/>,assets:<Assets {...props}/>,financing:<Financing {...props}/>,journey:<Journey {...props}/>,properties:<Properties {...props}/>,documents:<Documents {...props}/>,cloud:<Cloud cloud={cloud}/>,settings:<Settings {...props} onLockChange={setLocked}/>} 
+  const pages={dashboard:<Dashboard {...props} cloud={cloud}/>,budget:<Budget {...props}/>,savings:<Savings {...props}/>,timeline:<Timeline {...props}/>,statistics:<Statistics {...props}/>,coach:<Coach {...props}/>,assets:<Assets {...props}/>,financing:<Financing {...props}/>,journey:<Journey {...props}/>,properties:<Properties {...props}/>,housingFinance:<HousingFinance {...props}/>,documents:<Documents {...props}/>,cloud:<Cloud cloud={cloud}/>,settings:<Settings {...props} onLockChange={setLocked}/>} 
   return <>
     {locked&&<LockScreen pinHash={state.security.pinHash} onUnlock={()=>setLocked(false)}/>} 
     <Layout active={active} onNavigate={setActive} title={titles[active]} syncStatus={syncStatus}>{pages[active]}</Layout>

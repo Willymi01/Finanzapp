@@ -1,6 +1,6 @@
 import { Cloud as CloudIcon, Download, RefreshCw, Upload, MonitorSmartphone, CheckCircle2, AlertTriangle } from 'lucide-react'
 
-const rows=[['Sparplan-Monate','sparplan'],['Sonderzahlungen','sonderzahlungen'],['Sonderzahlungen gesamt','sonderzahlungenSumme'],['Zwischenstände','zwischenstaende'],['Immobilien','immobilien'],['Dokumente','dokumente']]
+const rows=[['Sparplan-Monate','sparplan'],['Sonderzahlungen','sonderzahlungen'],['Sonderzahlungen gesamt','sonderzahlungenSumme'],['Zwischenstände','zwischenstaende'],['Immobilien','immobilien'],['Dokumente','dokumente'],['Finanzierungsprojekte','finanzierungen']]
 
 function StatusIcon({kind}){
   return kind==='good'?<CheckCircle2 size={22}/>:kind==='warn'||kind==='info'?<AlertTriangle size={22}/>:<CloudIcon size={22}/>

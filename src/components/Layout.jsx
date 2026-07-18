@@ -1,6 +1,6 @@
 import {
   Home, WalletCards, CalendarDays, TrendingUp, Landmark, Building2,
-  Cloud, Settings, Download, ListChecks, Milestone, Menu, X, FolderOpen, BarChart3, BrainCircuit, Plus, Camera, FilePlus2
+  Cloud, Settings, Download, ListChecks, Milestone, Menu, X, FolderOpen, BarChart3, BrainCircuit, Plus, Camera, FilePlus2, Calculator
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -15,6 +15,7 @@ const items = [
   ['financing','Finanzierung',Landmark],
   ['journey','Mein Wohnungskauf',ListChecks],
   ['properties','Wohnungen',Building2],
+  ['housingFinance','Wohnungsfinanzierung',Calculator],
   ['documents','Dokumente',FolderOpen],
   ['cloud','Cloud & Login',Cloud],
   ['settings','Einstellungen',Settings]
@@ -67,7 +68,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
     <aside className={`sidebar ${mobileOpen?'mobile-open':''}`}>
       <div className="brand">
         <div className="logo">€</div>
-        <div><strong>Finanzzentrale</strong><span>Version 10.8.1</span></div>
+        <div><strong>Finanzzentrale</strong><span>Version 10.9.0</span></div>
         <button className="drawer-close" aria-label="Menü schließen" onClick={()=>setMobileOpen(false)}>
           <X size={22}/>
         </button>
@@ -119,6 +120,7 @@ export default function Layout({ active, onNavigate, title, children, syncStatus
         <button onClick={()=>{navigate('savings');setQuickOpen(false)}}><Camera size={18}/><span>Zwischenstand</span></button>
         <button onClick={()=>{navigate('documents');setQuickOpen(false)}}><FilePlus2 size={18}/><span>Dokument</span></button>
         <button onClick={()=>{navigate('properties');setQuickOpen(false)}}><Building2 size={18}/><span>Wohnung</span></button>
+        <button onClick={()=>{navigate('housingFinance');setQuickOpen(false)}}><Calculator size={18}/><span>Finanzierung</span></button>
       </div>
       <button className="quick-fab" aria-label="Schnellaktionen öffnen" aria-expanded={quickOpen} onClick={()=>setQuickOpen(v=>!v)}>
         {quickOpen?<X size={25}/>:<Plus size={27}/>} 
