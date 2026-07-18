@@ -15,29 +15,49 @@ const parseNumberInput = value => {
 }
 
 function NumberInput({ value, onValueChange, min = 0, max, step = 'any', ...props }) {
-  const safeValue = value === null || value === undefined ? '' : value
+  const [draft, setDraft] = useState(value === null || value === undefined ? '' : String(value).replace('.', ','))
+  const [focused, setFocused] = useState(false)
+
+  useEffect(() => {
+    if (!focused) setDraft(value === null || value === undefined ? '' : String(value).replace('.', ','))
+  }, [value, focused])
+
+  const commit = rawValue => {
+    const parsed = parseNumberInput(rawValue)
+    if (parsed === null) return
+    const lower = min == null ? parsed : Math.max(Number(min), parsed)
+    const clamped = max == null ? lower : Math.min(Number(max), lower)
+    onValueChange(clamped)
+  }
+
   return <input
     {...props}
-    type="number"
+    type="text"
     inputMode="decimal"
-    min={min}
-    max={max}
-    step={step}
-    value={safeValue}
+    autoComplete="off"
+    value={draft}
+    onFocus={event => {
+      setFocused(true)
+      event.currentTarget.select()
+    }}
     onChange={event => {
       const raw = event.currentTarget.value
-      if (raw === '') {
-        onValueChange('')
-        return
-      }
-      const parsed = Number(raw)
-      if (!Number.isFinite(parsed)) return
-      const lower = min == null ? parsed : Math.max(Number(min), parsed)
-      const clamped = max == null ? lower : Math.min(Number(max), lower)
-      onValueChange(clamped)
+      if (!/^\d*(?:[.,]\d*)?$/.test(raw)) return
+      setDraft(raw)
+      if (raw !== '' && !/[.,]$/.test(raw)) commit(raw)
     }}
-    onBlur={event => {
-      if (event.currentTarget.value === '') onValueChange(Number(min || 0))
+    onBlur={() => {
+      setFocused(false)
+      if (draft === '') {
+        const fallback = Number(min || 0)
+        setDraft(String(fallback).replace('.', ','))
+        onValueChange(fallback)
+      } else {
+        commit(draft)
+      }
+    }}
+    onKeyDown={event => {
+      if (event.key === 'Enter') event.currentTarget.blur()
     }}
   />
 }

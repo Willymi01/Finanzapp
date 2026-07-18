@@ -440,3 +440,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .equity-breakdown span{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:12px}.equity-breakdown b{color:var(--text)}
 .input-suffix-wrap input[type="number"]{appearance:textfield;-moz-appearance:textfield;padding-right:62px}
 .input-suffix-wrap input[type="number"]::-webkit-inner-spin-button,.input-suffix-wrap input[type="number"]::-webkit-outer-spin-button{opacity:.65}
+
+/* V10.9.2c: Financing form usability and layout */
+.span-6{grid-column:span 6}
+.housing-grid>.panel{min-width:0}
+.housing-grid .form-grid.two{grid-template-columns:repeat(2,minmax(150px,1fr));gap:14px}
+.housing-grid .input-suffix-wrap input{min-width:0;font-size:16px;padding:12px 76px 12px 12px}
+.housing-grid .input-suffix-wrap>span{right:12px;font-size:13px}
+.housing-grid .loan-heading{min-height:82px}
+.housing-grid .loan-result-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1100px){
+  .housing-grid>.span-6{grid-column:span 12}
+  .housing-grid .form-grid.two{grid-template-columns:repeat(2,minmax(180px,1fr))}
+}
+@media(max-width:620px){
+  .housing-grid .form-grid.two{grid-template-columns:1fr}
+  .housing-grid .loan-result-strip{grid-template-columns:1fr}
+}
