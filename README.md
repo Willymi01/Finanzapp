@@ -1,17 +1,22 @@
-# Meine Finanzzentrale – Version 10.9.3
+# Meine Finanzzentrale 10.9.4
 
-## Neu in dieser Version
+## Neu: Leistbarkeitsampel
 
-Die Wohnungsfinanzierung unterstützt jetzt geplante Ratenänderungen und Sondertilgungen für Bank- und KfW-Darlehen.
+Die Wohnungsfinanzierung bewertet die geplante Gesamtbelastung jetzt anhand des bestehenden Finanzplans.
 
-- Monatsrate ab einem frei wählbaren Finanzierungsjahr ändern
-- mehrere Ratenänderungen hintereinander planen
-- Sondertilgungen einem Finanzierungsjahr zuordnen
-- Bank oder KfW als Ziel auswählen
-- Auswirkungen auf Laufzeit, Gesamtzinsen und Restschuld sofort berechnen
-- Sondertilgungen separat im jährlichen Tilgungsplan ausweisen
-- bestehende Finanzierungsprojekte automatisch migrieren
+Die Ampel zeigt:
+- monatliches Nettoeinkommen
+- erkannte bisherige Wohnkosten
+- übrige Lebenshaltungskosten
+- künftige Wohnbelastung inklusive Darlehen und laufender Wohnungskosten
+- verbleibenden Monatspuffer
+- Wohnkostenquote
 
-## Installation
+Erkannte bestehende Positionen wie Miete, Strom, Heizung, Internet und Kabel werden aus den bisherigen Kosten herausgerechnet und durch die neue Wohnbelastung ersetzt. So werden Wohnkosten nicht doppelt angesetzt.
 
-Den Inhalt dieses Projektordners in das GitHub-Repository hochladen. Der enthaltene GitHub-Pages-Workflow baut und veröffentlicht die App automatisch. Nach erfolgreichem Workflow die installierte PWA über das Cloud-Center aktualisieren oder die Webseite mit Strg+F5 neu laden.
+### Bewertung
+- Grün: mindestens 500 € Restpuffer, höchstens 40 % Wohnkostenquote und höchstens 35 % Kreditquote
+- Gelb: positiver Restpuffer, höchstens 50 % Wohnkostenquote und höchstens 45 % Kreditquote
+- Rot: negativer Restpuffer oder höhere Belastung
+
+Die Ampel ist eine persönliche Haushaltsorientierung und keine Kreditzusage.

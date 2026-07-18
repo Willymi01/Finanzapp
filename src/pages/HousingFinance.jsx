@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Building2, Plus, Trash2, Landmark, Home, CalendarClock, TrendingDown } from 'lucide-react'
+import { Building2, Plus, Trash2, Landmark, Home, CalendarClock, TrendingDown, CircleCheck, TriangleAlert, CircleX } from 'lucide-react'
 import { MetricCard, Panel } from '../components/Cards'
-import { euro } from '../lib/calculations'
+import { euro, incomeTotal, fixedTotal, variableTotal } from '../lib/calculations'
 
 const number = value => Math.max(0, Number(value || 0))
 const pct = value => number(value) / 100
@@ -274,16 +274,63 @@ export function housingFinanceSummary(state, project) {
   const payoffMonths = Math.max(bankPlan.payoffMonths || 0, kfwPlan.payoffMonths || 0) || (financingNeed ? null : 0)
   const annualSchedule = combinedAnnualSchedule(bankPlan, kfwPlan, project.startDate)
   const creditRateAfterGrace = bankPlan.regularRate + regularKfwRate
+  const totalMonthly = bankRate + kfwRate + monthlyHousingCosts
+  const totalMonthlyAfterGrace = creditRateAfterGrace + monthlyHousingCosts
+
+  // Für die Haushaltsrechnung werden erkannte heutige Wohnkosten ersetzt,
+  // damit Miete, Strom oder Internet nicht doppelt angesetzt werden.
+  const housingCostPattern = /(miete|warmmiete|kaltmiete|hausgeld|strom|heizung|internet|kabel)/i
+  const currentHousingCosts = (state.budget?.fixed || []).reduce((sum, item) => {
+    if (!housingCostPattern.test(String(item.name || ''))) return sum
+    return sum + number(item.cost) / Math.max(1, number(item.factor) || 1)
+  }, 0)
+  const monthlyIncome = incomeTotal(state)
+  const currentFixedCosts = fixedTotal(state)
+  const currentVariableCosts = variableTotal(state)
+  const otherLivingCosts = Math.max(0, currentFixedCosts - currentHousingCosts) + currentVariableCosts
+  const stressHousingCost = Math.max(totalMonthly, totalMonthlyAfterGrace)
+  const remainingBuffer = monthlyIncome - otherLivingCosts - stressHousingCost
+  const housingRatio = monthlyIncome > 0 ? stressHousingCost / monthlyIncome : 1
+  const debtServiceRatio = monthlyIncome > 0 ? Math.max(bankRate + kfwRate, creditRateAfterGrace) / monthlyIncome : 1
+
+  let affordability = {
+    kind: 'red',
+    label: 'Nicht finanzierbar',
+    headline: 'Die geplante Belastung ist aktuell zu hoch.',
+  }
+  if (monthlyIncome > 0 && remainingBuffer >= 500 && housingRatio <= 0.40 && debtServiceRatio <= 0.35) {
+    affordability = {
+      kind: 'green',
+      label: 'Gut finanzierbar',
+      headline: 'Die Finanzierung lässt einen soliden monatlichen Puffer.',
+    }
+  } else if (monthlyIncome > 0 && remainingBuffer >= 0 && housingRatio <= 0.50 && debtServiceRatio <= 0.45) {
+    affordability = {
+      kind: 'yellow',
+      label: 'Knapp finanzierbar',
+      headline: 'Die Finanzierung ist möglich, aber der Puffer ist begrenzt.',
+    }
+  }
 
   return {
     purchasePrice, purchaseCosts, totalCost, equity, baseEquity, pensionEquity, emergencyEquity, financingNeed, kfwAmount, bankAmount,
     bankRate, kfwRate, regularKfwRate, creditRate: bankRate + kfwRate,
-    creditRateAfterGrace, monthlyHousingCosts, totalMonthly: bankRate + kfwRate + monthlyHousingCosts,
-    totalMonthlyAfterGrace: creditRateAfterGrace + monthlyHousingCosts,
+    creditRateAfterGrace, monthlyHousingCosts, totalMonthly,
+    totalMonthlyAfterGrace,
     bankPlan, kfwPlan, annualSchedule, residualAtFixed, payoffMonths,
     totalInterest: bankPlan.totalInterest + kfwPlan.totalInterest,
     totalPaid: bankPlan.totalPaid + kfwPlan.totalPaid,
     totalExtraRepayment: bankPlan.totalExtraRepayment + kfwPlan.totalExtraRepayment,
+    affordability: {
+      ...affordability,
+      monthlyIncome,
+      currentHousingCosts,
+      otherLivingCosts,
+      stressHousingCost,
+      remainingBuffer,
+      housingRatio,
+      debtServiceRatio,
+    },
   }
 }
 
@@ -517,6 +564,33 @@ export default function HousingFinance({ state, setState }) {
           {number(project.kfw.graceYears) > 0 && <div className="total secondary"><span>Nach KfW-Anlaufzeit</span><b>{euro(summary.totalMonthlyAfterGrace)}</b></div>}
         </div>
         <p className="calculation-note">Ohne geplante Ratenänderung bleibt die Annuität konstant. Ratenänderungen und Sondertilgungen werden monatsgenau berücksichtigt. Zinsen werden monatlich auf die jeweilige Restschuld berechnet. Änderungen des Zinssatzes nach der Zinsbindung folgen mit der Anschlussfinanzierung in einer späteren Version.</p>
+      </Panel>
+
+      <Panel title="Leistbarkeitsampel" subtitle="Haushaltsrechnung auf Basis deines Finanzplans" className="span-12 affordability-panel">
+        <div className={`affordability-hero ${summary.affordability.kind}`}>
+          <div className="affordability-icon">
+            {summary.affordability.kind === 'green' ? <CircleCheck size={42}/> : summary.affordability.kind === 'yellow' ? <TriangleAlert size={42}/> : <CircleX size={42}/>} 
+          </div>
+          <div>
+            <span className="affordability-label">{summary.affordability.label}</span>
+            <h3>{summary.affordability.headline}</h3>
+            <p>Nach allen bisherigen Lebenshaltungskosten und der künftigen Wohnbelastung bleiben rechnerisch <b>{euro(summary.affordability.remainingBuffer)}</b> pro Monat.</p>
+          </div>
+        </div>
+        <div className="affordability-grid">
+          <div><span>Monatliches Einkommen</span><b>{euro(summary.affordability.monthlyIncome)}</b></div>
+          <div><span>Erkannte heutige Wohnkosten</span><b>− {euro(summary.affordability.currentHousingCosts)}</b></div>
+          <div><span>Übrige Lebenshaltungskosten</span><b>{euro(summary.affordability.otherLivingCosts)}</b></div>
+          <div><span>Künftige Wohnbelastung</span><b>{euro(summary.affordability.stressHousingCost)}</b></div>
+          <div className="highlight"><span>Monatlicher Restpuffer</span><b>{euro(summary.affordability.remainingBuffer)}</b></div>
+          <div><span>Wohnkostenquote</span><b>{(summary.affordability.housingRatio * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} %</b></div>
+        </div>
+        <div className="affordability-scale" aria-label="Bewertungsgrenzen der Leistbarkeitsampel">
+          <span className="green">Grün: mindestens 500 € Puffer und höchstens 40 % Wohnkostenquote</span>
+          <span className="yellow">Gelb: positiver Puffer und höchstens 50 % Wohnkostenquote</span>
+          <span className="red">Rot: negativer Puffer oder darüberliegende Belastung</span>
+        </div>
+        <p className="calculation-note">Die Ampel ist eine persönliche Haushaltsorientierung und keine Kreditzusage. Erkannte aktuelle Positionen wie Miete, Strom, Heizung, Internet und Kabel werden durch die neue Wohnbelastung ersetzt, damit sie nicht doppelt gerechnet werden. Jährliche Sonderzahlungen werden bewusst nicht als sicheres Monatseinkommen angesetzt.</p>
       </Panel>
 
       <Panel title="Restschuldentwicklung" subtitle="Bank- und KfW-Darlehen zusammen" className="span-12">
