@@ -1,4 +1,4 @@
-# Meine Finanzzentrale 10.9.5
+# Meine Finanzzentrale 10.9.4
 
 ## Neu: Leistbarkeitsampel
 

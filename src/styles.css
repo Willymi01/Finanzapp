@@ -504,3 +504,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .planning-comparison>span{padding:12px 14px;border-radius:12px;background:rgba(139,213,74,.08);border:1px solid rgba(139,213,74,.22)}
 @media(max-width:900px){.planning-impact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.planning-comparison{grid-template-columns:1fr}}
 @media(max-width:520px){.planning-impact-grid{grid-template-columns:1fr}}
+
+/* V10.9.6: Rechenfix für spätere Tilgungsereignisse */
+.finance-warning-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(245, 158, 11, .45);
+  border-radius: 12px;
+  background: rgba(245, 158, 11, .08);
+  color: var(--text);
+}

@@ -176,7 +176,11 @@ export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceM
     totalExtraRepayment += extraRepayment
     rows.push({ month, opening, interest, repayment, extraRepayment, payment, totalPayment: payment + extraRepayment, balance, grace, monthlyRate: chosenRate })
 
-    if (!grace && chosenRate <= interest + 0.0001 && extraRepayment <= 0) break
+    // Nicht abbrechen, wenn die aktuelle Rate zunächst nur die Zinsen deckt.
+    // Spätere Ratenänderungen, jährliche Erhöhungen oder Sondertilgungen können
+    // das Darlehen trotzdem in die Tilgung bringen. Der Plan läuft daher bis
+    // maxMonths weiter und wird anschließend korrekt als nicht vollständig
+    // getilgt gekennzeichnet, falls die Restschuld bestehen bleibt.
   }
 
   const paidOff = balance <= 0.005
@@ -299,6 +303,13 @@ export function housingFinanceSummary(state, project) {
   const plannedPayoffMonths = Math.max(bankPlan.payoffMonths || 0, kfwPlan.payoffMonths || 0) || (financingNeed ? null : 0)
   const interestSaved = Math.max(0, baselineInterest - (bankPlan.totalInterest + kfwPlan.totalInterest))
   const monthsSaved = baselinePayoffMonths != null && plannedPayoffMonths != null ? Math.max(0, baselinePayoffMonths - plannedPayoffMonths) : 0
+  const bankMonthsSaved = baselineBankPlan.payoffMonths != null && bankPlan.payoffMonths != null
+    ? Math.max(0, baselineBankPlan.payoffMonths - bankPlan.payoffMonths)
+    : 0
+  const kfwMonthsSaved = baselineKfwPlan.payoffMonths != null && kfwPlan.payoffMonths != null
+    ? Math.max(0, baselineKfwPlan.payoffMonths - kfwPlan.payoffMonths)
+    : 0
+  const plannedExtraRepayment = (project.extraRepayments || []).reduce((sum, item) => sum + number(item.amount), 0)
   const comparisonFixedMonth = Math.round(Math.max(1, number(project.bank?.fixedYears || 10)) * 12)
   const baselineResidualAtFixed = baselineBankPlan.residual(comparisonFixedMonth) + baselineKfwPlan.residual(comparisonFixedMonth)
 
@@ -359,7 +370,21 @@ export function housingFinanceSummary(state, project) {
     totalInterest: bankPlan.totalInterest + kfwPlan.totalInterest,
     totalPaid: bankPlan.totalPaid + kfwPlan.totalPaid,
     totalExtraRepayment: bankPlan.totalExtraRepayment + kfwPlan.totalExtraRepayment,
-    planningImpact: { baselineInterest, interestSaved, monthsSaved, baselinePayoffMonths, baselineResidualAtFixed, residualReductionAtFixed: Math.max(0, baselineResidualAtFixed - residualAtFixed), hasPlanning: (project.rateChanges || []).length > 0 || (project.extraRepayments || []).length > 0 || number(project.bank?.annualRateIncreasePct) > 0 || number(project.kfw?.annualRateIncreasePct) > 0 },
+    planningImpact: {
+      baselineInterest,
+      interestSaved,
+      monthsSaved,
+      bankMonthsSaved,
+      kfwMonthsSaved,
+      baselinePayoffMonths,
+      baselineResidualAtFixed,
+      residualReductionAtFixed: Math.max(0, baselineResidualAtFixed - residualAtFixed),
+      plannedExtraRepayment,
+      unappliedExtraRepayment: Math.max(0, plannedExtraRepayment - (bankPlan.totalExtraRepayment + kfwPlan.totalExtraRepayment)),
+      bankInterestSaved: Math.max(0, baselineBankPlan.totalInterest - bankPlan.totalInterest),
+      kfwInterestSaved: Math.max(0, baselineKfwPlan.totalInterest - kfwPlan.totalInterest),
+      hasPlanning: (project.rateChanges || []).length > 0 || (project.extraRepayments || []).length > 0 || number(project.bank?.annualRateIncreasePct) > 0 || number(project.kfw?.annualRateIncreasePct) > 0,
+    },
     affordability: {
       ...affordability,
       monthlyIncome,
@@ -593,11 +618,16 @@ export default function HousingFinance({ state, setState }) {
       <Panel title="Wirkung deiner Tilgungsplanung" subtitle="Vergleich mit einer Finanzierung ohne Ratenänderungen, automatische Erhöhungen und Sondertilgungen" className="span-12 planning-impact-panel">
         {!summary.planningImpact.hasPlanning ? <p className="finance-empty-note">Noch keine zusätzliche Tilgungsplanung aktiv. Trage eine Sondertilgung, eine feste Ratenänderung oder eine jährliche Ratenerhöhung ein.</p> : <>
           <div className="planning-impact-grid">
+            <div><span>Sondertilgungen geplant</span><b>{euro(summary.planningImpact.plannedExtraRepayment)}</b></div>
             <div><span>Sondertilgungen tatsächlich verrechnet</span><b>{euro(summary.totalExtraRepayment)}</b></div>
-            <div><span>Zinsersparnis</span><b>{euro(summary.planningImpact.interestSaved)}</b></div>
-            <div><span>Früher schuldenfrei</span><b>{durationLabel(summary.planningImpact.monthsSaved)}</b></div>
+            <div><span>Zinsersparnis gesamt</span><b>{euro(summary.planningImpact.interestSaved)}</b></div>
             <div><span>Weniger Restschuld nach Zinsbindung</span><b>{euro(summary.planningImpact.residualReductionAtFixed)}</b></div>
+            <div><span>Bank früher schuldenfrei</span><b>{durationLabel(summary.planningImpact.bankMonthsSaved)}</b></div>
+            <div><span>KfW früher schuldenfrei</span><b>{durationLabel(summary.planningImpact.kfwMonthsSaved)}</b></div>
           </div>
+          {summary.planningImpact.unappliedExtraRepayment > 0 && <p className="finance-warning-note">
+            {euro(summary.planningImpact.unappliedExtraRepayment)} der geplanten Sondertilgungen wurden nicht mehr benötigt, weil das gewählte Darlehen vorher vollständig getilgt war.
+          </p>}
           <div className="planning-comparison">
             <span>Ohne Zusatzplanung: <b>{durationLabel(summary.planningImpact.baselinePayoffMonths)}</b> · {euro(summary.planningImpact.baselineInterest)} Zinsen</span>
             <span>Mit deiner Planung: <b>{durationLabel(summary.payoffMonths)}</b> · {euro(summary.totalInterest)} Zinsen</span>
