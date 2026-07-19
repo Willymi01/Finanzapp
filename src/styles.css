@@ -493,3 +493,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .affordability-scale .red{background:rgba(239,83,80,.08);border-color:#ef5350}
 @media(max-width:900px){.affordability-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.affordability-scale{grid-template-columns:1fr}}
 @media(max-width:560px){.affordability-hero{align-items:flex-start;padding:17px}.affordability-icon{min-width:50px;height:50px}.affordability-grid{grid-template-columns:1fr}}
+
+
+/* V10.9.5: sichtbare Wirkung der Tilgungsplanung */
+.planning-impact-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.planning-impact-grid>div{border:1px solid var(--border);border-radius:14px;padding:14px;background:rgba(255,255,255,.025);display:flex;flex-direction:column;gap:6px}
+.planning-impact-grid span,.planning-comparison span{color:var(--muted);font-size:.9rem}
+.planning-impact-grid b{font-size:1.15rem;color:var(--accent)}
+.planning-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.planning-comparison>span{padding:12px 14px;border-radius:12px;background:rgba(139,213,74,.08);border:1px solid rgba(139,213,74,.22)}
+@media(max-width:900px){.planning-impact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.planning-comparison{grid-template-columns:1fr}}
+@media(max-width:520px){.planning-impact-grid{grid-template-columns:1fr}}

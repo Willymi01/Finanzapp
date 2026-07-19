@@ -40,6 +40,8 @@ export const normaliseState = value => {
   merged.housingFinance = merged.housingFinance && typeof merged.housingFinance === 'object' ? merged.housingFinance : { projects: [], activeProjectId: null }
   merged.housingFinance.projects = Array.isArray(merged.housingFinance.projects) ? merged.housingFinance.projects.map(project => ({
     ...project,
+    bank: { annualRateIncreasePct: 0, increaseStartYear: 2, maxMonthlyRate: 0, ...(project.bank || {}) },
+    kfw: { annualRateIncreasePct: 0, increaseStartYear: 2, maxMonthlyRate: 0, ...(project.kfw || {}) },
     rateChanges: Array.isArray(project.rateChanges) ? project.rateChanges : [],
     extraRepayments: Array.isArray(project.extraRepayments) ? project.extraRepayments : [],
   })) : []

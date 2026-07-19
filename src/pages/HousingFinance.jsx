@@ -92,6 +92,9 @@ export const createHousingFinanceProject = (state, index = 1) => ({
     repaymentPct: Number(state?.assumptions?.bankRepayment || 0.02) * 100,
     fixedYears: 10,
     termYears: 30,
+    annualRateIncreasePct: 0,
+    increaseStartYear: 2,
+    maxMonthlyRate: 0,
   },
   kfw: {
     enabled: true,
@@ -102,6 +105,9 @@ export const createHousingFinanceProject = (state, index = 1) => ({
     graceYears: 1,
     fixedYears: 10,
     termYears: 25,
+    annualRateIncreasePct: 0,
+    increaseStartYear: 2,
+    maxMonthlyRate: 0,
   },
   monthlyCosts: {
     houseFee: 250,
@@ -120,7 +126,7 @@ export const createHousingFinanceProject = (state, index = 1) => ({
   createdAt: new Date().toISOString(),
 })
 
-export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, termYears = 0, rateChanges = [], extraRepayments = [], maxMonths = 720 }) {
+export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceMonths = 0, termYears = 0, rateChanges = [], extraRepayments = [], annualRateIncreasePct = 0, increaseStartYear = 2, maxMonthlyRate = 0, maxMonths = 720 }) {
   const amount = number(principal)
   const monthlyInterest = pct(interestPct) / 12
   const initialRate = amount > 0 ? amount * (pct(interestPct) + pct(repaymentPct)) / 12 : 0
@@ -153,7 +159,12 @@ export function buildLoanSchedule({ principal, interestPct, repaymentPct, graceM
     const interest = opening * monthlyInterest
     const grace = month <= graceMonths
     const activeChange = sortedRateChanges.filter(item => item.startMonth <= month).at(-1)
-    const chosenRate = activeChange?.monthlyRate || regularRate
+    const baseChosenRate = activeChange?.monthlyRate || regularRate
+    const currentYear = Math.floor((month - 1) / 12) + 1
+    const firstIncreaseYear = Math.max(1, Math.round(number(increaseStartYear) || 2))
+    const increaseSteps = currentYear >= firstIncreaseYear ? currentYear - firstIncreaseYear + 1 : 0
+    const increasedRate = baseChosenRate * Math.pow(1 + pct(annualRateIncreasePct), increaseSteps)
+    const chosenRate = number(maxMonthlyRate) > 0 ? Math.min(increasedRate, number(maxMonthlyRate)) : increasedRate
     const plannedPayment = grace ? interest : Math.max(chosenRate, interest)
     const payment = Math.min(opening + interest, plannedPayment)
     const repayment = Math.max(0, payment - interest)
@@ -254,6 +265,9 @@ export function housingFinanceSummary(state, project) {
     termYears: project.bank?.termYears,
     rateChanges: (project.rateChanges || []).filter(item => item.loan === 'bank'),
     extraRepayments: (project.extraRepayments || []).filter(item => item.loan === 'bank'),
+    annualRateIncreasePct: project.bank?.annualRateIncreasePct,
+    increaseStartYear: project.bank?.increaseStartYear,
+    maxMonthlyRate: project.bank?.maxMonthlyRate,
   })
   const kfwPlan = buildLoanSchedule({
     principal: kfwAmount,
@@ -263,7 +277,31 @@ export function housingFinanceSummary(state, project) {
     termYears: project.kfw?.termYears,
     rateChanges: (project.rateChanges || []).filter(item => item.loan === 'kfw'),
     extraRepayments: (project.extraRepayments || []).filter(item => item.loan === 'kfw'),
+    annualRateIncreasePct: project.kfw?.annualRateIncreasePct,
+    increaseStartYear: project.kfw?.increaseStartYear,
+    maxMonthlyRate: project.kfw?.maxMonthlyRate,
   })
+  const baselineBankPlan = buildLoanSchedule({
+    principal: bankAmount,
+    interestPct: project.bank?.interestPct,
+    repaymentPct: project.bank?.repaymentPct,
+    termYears: project.bank?.termYears,
+  })
+  const baselineKfwPlan = buildLoanSchedule({
+    principal: kfwAmount,
+    interestPct: project.kfw?.interestPct,
+    repaymentPct: project.kfw?.repaymentPct,
+    graceMonths: Math.round(number(project.kfw?.graceYears) * 12),
+    termYears: project.kfw?.termYears,
+  })
+  const baselinePayoffMonths = Math.max(baselineBankPlan.payoffMonths || 0, baselineKfwPlan.payoffMonths || 0) || (financingNeed ? null : 0)
+  const baselineInterest = baselineBankPlan.totalInterest + baselineKfwPlan.totalInterest
+  const plannedPayoffMonths = Math.max(bankPlan.payoffMonths || 0, kfwPlan.payoffMonths || 0) || (financingNeed ? null : 0)
+  const interestSaved = Math.max(0, baselineInterest - (bankPlan.totalInterest + kfwPlan.totalInterest))
+  const monthsSaved = baselinePayoffMonths != null && plannedPayoffMonths != null ? Math.max(0, baselinePayoffMonths - plannedPayoffMonths) : 0
+  const comparisonFixedMonth = Math.round(Math.max(1, number(project.bank?.fixedYears || 10)) * 12)
+  const baselineResidualAtFixed = baselineBankPlan.residual(comparisonFixedMonth) + baselineKfwPlan.residual(comparisonFixedMonth)
+
   const bankRate = bankPlan.firstRate
   const kfwRate = kfwPlan.firstRate
   const regularKfwRate = kfwPlan.regularRate
@@ -321,6 +359,7 @@ export function housingFinanceSummary(state, project) {
     totalInterest: bankPlan.totalInterest + kfwPlan.totalInterest,
     totalPaid: bankPlan.totalPaid + kfwPlan.totalPaid,
     totalExtraRepayment: bankPlan.totalExtraRepayment + kfwPlan.totalExtraRepayment,
+    planningImpact: { baselineInterest, interestSaved, monthsSaved, baselinePayoffMonths, baselineResidualAtFixed, residualReductionAtFixed: Math.max(0, baselineResidualAtFixed - residualAtFixed), hasPlanning: (project.rateChanges || []).length > 0 || (project.extraRepayments || []).length > 0 || number(project.bank?.annualRateIncreasePct) > 0 || number(project.kfw?.annualRateIncreasePct) > 0 },
     affordability: {
       ...affordability,
       monthlyIncome,
@@ -496,7 +535,11 @@ export default function HousingFinance({ state, setState }) {
           <Field label="Anfangstilgung" suffix="%"><NumberInput value={project.bank.repaymentPct} onValueChange={value => updateSection('bank','repaymentPct',value)} step="0.01"/></Field>
           <Field label="Zinsbindung" suffix="Jahre"><NumberInput value={project.bank.fixedYears} onValueChange={value => updateSection('bank','fixedYears',value)}/></Field>
           <Field label="Gewünschte Laufzeit" suffix="Jahre"><NumberInput value={project.bank.termYears} onValueChange={value => updateSection('bank','termYears',value)}/></Field>
+          <Field label="Jährliche Ratenerhöhung" suffix="%"><NumberInput value={project.bank.annualRateIncreasePct ?? 0} onValueChange={value => updateSection('bank','annualRateIncreasePct',value)} step="0.1"/></Field>
+          <Field label="Erhöhung ab Jahr"><NumberInput min={1} value={project.bank.increaseStartYear ?? 2} onValueChange={value => updateSection('bank','increaseStartYear',value)}/></Field>
+          <Field label="Maximale Monatsrate" suffix="€"><NumberInput value={project.bank.maxMonthlyRate ?? 0} onValueChange={value => updateSection('bank','maxMonthlyRate',value)}/></Field>
         </div>
+        <p className="calculation-note">Die Rate steigt jeweils zu Beginn eines Finanzierungsjahres um den eingestellten Prozentsatz. 0 % deaktiviert die automatische Erhöhung; 0 € bedeutet keine Obergrenze.</p>
         <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.bankPlan.residual(number(project.bank.fixedYears) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.bankPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.bankPlan.payoffMonths)}</b></span></div>
       </Panel>
 
@@ -512,6 +555,9 @@ export default function HousingFinance({ state, setState }) {
             <Field label="Tilgungsfreie Jahre" suffix="Jahre"><NumberInput value={project.kfw.graceYears} onValueChange={value => updateSection('kfw','graceYears',value)}/></Field>
             <Field label="Zinsbindung" suffix="Jahre"><NumberInput min={1} value={project.kfw.fixedYears ?? 10} onValueChange={value => updateSection('kfw','fixedYears',value)}/></Field>
             <Field label="Gewünschte Laufzeit" suffix="Jahre"><NumberInput value={project.kfw.termYears} onValueChange={value => updateSection('kfw','termYears',value)}/></Field>
+            <Field label="Jährliche Ratenerhöhung" suffix="%"><NumberInput value={project.kfw.annualRateIncreasePct ?? 0} onValueChange={value => updateSection('kfw','annualRateIncreasePct',value)} step="0.1"/></Field>
+            <Field label="Erhöhung ab Jahr"><NumberInput min={1} value={project.kfw.increaseStartYear ?? 2} onValueChange={value => updateSection('kfw','increaseStartYear',value)}/></Field>
+            <Field label="Maximale Monatsrate" suffix="€"><NumberInput value={project.kfw.maxMonthlyRate ?? 0} onValueChange={value => updateSection('kfw','maxMonthlyRate',value)}/></Field>
           </div>
           <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.kfwPlan.residual(number(project.kfw.fixedYears ?? 10) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.kfwPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.kfwPlan.payoffMonths)}</b></span></div>
         </div>
@@ -542,6 +588,21 @@ export default function HousingFinance({ state, setState }) {
         </div>
         <button onClick={addExtraRepayment}><Plus size={18}/> Sondertilgung hinzufügen</button>
         {(summary.totalExtraRepayment > 0) && <p className="finance-summary-note">Im Modell berücksichtigt: <b>{euro(summary.totalExtraRepayment)}</b> Sondertilgungen.</p>}
+      </Panel>
+
+      <Panel title="Wirkung deiner Tilgungsplanung" subtitle="Vergleich mit einer Finanzierung ohne Ratenänderungen, automatische Erhöhungen und Sondertilgungen" className="span-12 planning-impact-panel">
+        {!summary.planningImpact.hasPlanning ? <p className="finance-empty-note">Noch keine zusätzliche Tilgungsplanung aktiv. Trage eine Sondertilgung, eine feste Ratenänderung oder eine jährliche Ratenerhöhung ein.</p> : <>
+          <div className="planning-impact-grid">
+            <div><span>Sondertilgungen tatsächlich verrechnet</span><b>{euro(summary.totalExtraRepayment)}</b></div>
+            <div><span>Zinsersparnis</span><b>{euro(summary.planningImpact.interestSaved)}</b></div>
+            <div><span>Früher schuldenfrei</span><b>{durationLabel(summary.planningImpact.monthsSaved)}</b></div>
+            <div><span>Weniger Restschuld nach Zinsbindung</span><b>{euro(summary.planningImpact.residualReductionAtFixed)}</b></div>
+          </div>
+          <div className="planning-comparison">
+            <span>Ohne Zusatzplanung: <b>{durationLabel(summary.planningImpact.baselinePayoffMonths)}</b> · {euro(summary.planningImpact.baselineInterest)} Zinsen</span>
+            <span>Mit deiner Planung: <b>{durationLabel(summary.payoffMonths)}</b> · {euro(summary.totalInterest)} Zinsen</span>
+          </div>
+        </>}
       </Panel>
 
       <Panel title="Monatliche Wohnungskosten" subtitle="Alle laufenden Kosten zusätzlich zu den Kreditraten" className="span-8">
@@ -605,9 +666,9 @@ export default function HousingFinance({ state, setState }) {
       <Panel title="Jährlicher Tilgungsplan" subtitle="Rate, Zins, Tilgung und Restschuld für jedes Finanzierungsjahr" className="span-12">
         <div className="table-scroll repayment-table-wrap">
           <table className="repayment-table">
-            <thead><tr><th>Jahr</th><th>Kalenderjahr</th><th>Gesamtzahlungen</th><th>Zinsen</th><th>Reguläre Tilgung</th><th>Sondertilgung</th><th>Bank-Restschuld</th><th>KfW-Restschuld</th><th>Gesamt-Restschuld</th></tr></thead>
+            <thead><tr><th>Jahr</th><th>Kalenderjahr</th><th>Ø Monatszahlung</th><th>Gesamtzahlungen</th><th>Zinsen</th><th>Reguläre Tilgung</th><th>Sondertilgung</th><th>Bank-Restschuld</th><th>KfW-Restschuld</th><th>Gesamt-Restschuld</th></tr></thead>
             <tbody>{summary.annualSchedule.map(row => <tr key={row.year}>
-              <td><b>{row.year}</b></td><td>{row.calendarYear}</td><td>{euro(row.payment)}</td><td>{euro(row.interest)}</td><td>{euro(row.repayment)}</td><td>{euro(row.extraRepayment)}</td><td>{euro(row.bankBalance)}</td><td>{euro(row.kfwBalance)}</td><td><b>{euro(row.balance)}</b></td>
+              <td><b>{row.year}</b></td><td>{row.calendarYear}</td><td>{euro(row.payment / 12)}</td><td>{euro(row.payment)}</td><td>{euro(row.interest)}</td><td>{euro(row.repayment)}</td><td>{euro(row.extraRepayment)}</td><td>{euro(row.bankBalance)}</td><td>{euro(row.kfwBalance)}</td><td><b>{euro(row.balance)}</b></td>
             </tr>)}</tbody>
           </table>
         </div>
