@@ -514,3 +514,33 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   background: rgba(245, 158, 11, .08);
   color: var(--text);
 }
+
+/* V10.9.7: vereinfachte Wohnungsfinanzierung */
+.housing-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.housing-overview-panel { margin: 0 0 18px; }
+.housing-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.housing-overview-grid > div {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.025);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.housing-overview-grid span { color: var(--muted); font-size: .9rem; }
+.housing-overview-grid b { font-size: 1.15rem; }
+.housing-overview-grid .highlight { background: rgba(116,196,65,.1); border-color: rgba(116,196,65,.35); }
+.simplified-housing-grid .finance-action-row { grid-template-columns: minmax(150px,.8fr) minmax(160px,.8fr) minmax(220px,1.2fr) auto; }
+@media (max-width: 1050px) {
+  .housing-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .housing-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  .housing-kpi-grid, .housing-overview-grid { grid-template-columns: 1fr; }
+  .simplified-housing-grid .finance-action-row { grid-template-columns: 1fr; }
+}

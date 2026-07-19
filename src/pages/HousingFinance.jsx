@@ -267,7 +267,7 @@ export function housingFinanceSummary(state, project) {
     interestPct: project.bank?.interestPct,
     repaymentPct: project.bank?.repaymentPct,
     termYears: project.bank?.termYears,
-    rateChanges: (project.rateChanges || []).filter(item => item.loan === 'bank'),
+    rateChanges: [],
     extraRepayments: (project.extraRepayments || []).filter(item => item.loan === 'bank'),
     annualRateIncreasePct: project.bank?.annualRateIncreasePct,
     increaseStartYear: project.bank?.increaseStartYear,
@@ -279,7 +279,7 @@ export function housingFinanceSummary(state, project) {
     repaymentPct: project.kfw?.repaymentPct,
     graceMonths: Math.round(number(project.kfw?.graceYears) * 12),
     termYears: project.kfw?.termYears,
-    rateChanges: (project.rateChanges || []).filter(item => item.loan === 'kfw'),
+    rateChanges: [],
     extraRepayments: (project.extraRepayments || []).filter(item => item.loan === 'kfw'),
     annualRateIncreasePct: project.kfw?.annualRateIncreasePct,
     increaseStartYear: project.kfw?.increaseStartYear,
@@ -383,7 +383,7 @@ export function housingFinanceSummary(state, project) {
       unappliedExtraRepayment: Math.max(0, plannedExtraRepayment - (bankPlan.totalExtraRepayment + kfwPlan.totalExtraRepayment)),
       bankInterestSaved: Math.max(0, baselineBankPlan.totalInterest - bankPlan.totalInterest),
       kfwInterestSaved: Math.max(0, baselineKfwPlan.totalInterest - kfwPlan.totalInterest),
-      hasPlanning: (project.rateChanges || []).length > 0 || (project.extraRepayments || []).length > 0 || number(project.bank?.annualRateIncreasePct) > 0 || number(project.kfw?.annualRateIncreasePct) > 0,
+      hasPlanning: (project.extraRepayments || []).length > 0 || number(project.bank?.annualRateIncreasePct) > 0 || number(project.kfw?.annualRateIncreasePct) > 0,
     },
     affordability: {
       ...affordability,
@@ -474,15 +474,6 @@ export default function HousingFinance({ state, setState }) {
     })
   }
 
-  const addRateChange = () => updateActiveProject(item => ({
-    ...item,
-    rateChanges: [...(item.rateChanges || []), { id: crypto.randomUUID(), loan: 'bank', startYear: 2, monthlyRate: Math.round(summary?.bankPlan?.regularRate || 0) }],
-  }))
-  const updateRateChange = (id, patch) => updateActiveProject(item => ({
-    ...item,
-    rateChanges: (item.rateChanges || []).map(entry => entry.id === id ? { ...entry, ...patch } : entry),
-  }))
-  const removeRateChange = id => updateActiveProject(item => ({ ...item, rateChanges: (item.rateChanges || []).filter(entry => entry.id !== id) }))
   const addExtraRepayment = () => updateActiveProject(item => ({
     ...item,
     extraRepayments: [...(item.extraRepayments || []), { id: crypto.randomUUID(), loan: 'bank', year: 1, amount: 5000 }],
@@ -516,14 +507,29 @@ export default function HousingFinance({ state, setState }) {
       <Field label="Finanzierungsbeginn"><input type="month" value={project.startDate || currentMonth()} onChange={event => updateProject({ startDate: event.target.value })}/></Field>
     </div>
 
-    <div className="metric-grid housing-metrics">
-      <MetricCard label="Gesamtkosten" value={euro(summary.totalCost)} hint={`davon ${euro(summary.purchaseCosts)} Kaufnebenkosten`} accent/>
-      <MetricCard label="Eigenkapital" value={euro(summary.equity)} hint={`${summary.totalCost ? Math.round(summary.equity / summary.totalCost * 100) : 0} % der Gesamtkosten`}/>
+    <div className="metric-grid housing-metrics housing-kpi-grid">
+      <MetricCard label="Monatliche Kreditrate" value={euro(summary.creditRate)} hint={`Bank ${euro(summary.bankRate)} · KfW ${euro(summary.kfwRate)}`} accent/>
+      <MetricCard label="Gesamte Monatskosten" value={euro(summary.totalMonthly)} hint={`inkl. ${euro(summary.monthlyHousingCosts)} laufender Kosten`}/>
+      <MetricCard label="Gesamte Zinsen" value={euro(summary.totalInterest)} hint={`Ersparnis durch Planung ${euro(summary.planningImpact.interestSaved)}`}/>
+      <MetricCard label="Vollständig abbezahlt" value={durationLabel(summary.payoffMonths)} hint={`Sondertilgungen ${euro(summary.totalExtraRepayment)}`}/>
+      <MetricCard label="Finanzierungsbedarf" value={euro(summary.financingNeed)} hint={`Eigenkapital ${euro(summary.equity)}`}/>
       <MetricCard label="Restschuld nach Zinsbindung" value={euro(summary.residualAtFixed)} hint={`nach ${number(project.bank.fixedYears || 10)} Jahren`}/>
-      <MetricCard label="Rechnerische Laufzeit" value={durationLabel(summary.payoffMonths)} hint={`Gesamtzinsen ${euro(summary.totalInterest)}`}/>
     </div>
 
-    <div className="content-grid housing-grid">
+    <Panel title="Deine Finanzierung auf einen Blick" subtitle="Die wichtigsten Kennzahlen ohne Fachchinesisch" className="housing-overview-panel">
+      <div className="housing-overview-grid">
+        <div><span>Kaufpreis + Nebenkosten</span><b>{euro(summary.totalCost)}</b></div>
+        <div><span>Eigenkapital</span><b>{euro(summary.equity)}</b></div>
+        <div><span>Bankdarlehen</span><b>{euro(summary.bankAmount)}</b></div>
+        <div><span>KfW-Darlehen</span><b>{euro(summary.kfwAmount)}</b></div>
+        <div className="highlight"><span>Kreditrate zu Beginn</span><b>{euro(summary.creditRate)}</b></div>
+        <div className="highlight"><span>Alle Wohnkosten pro Monat</span><b>{euro(summary.totalMonthly)}</b></div>
+        <div><span>Zinsen über die gesamte Laufzeit</span><b>{euro(summary.totalInterest)}</b></div>
+        <div><span>Voraussichtlich schuldenfrei</span><b>{durationLabel(summary.payoffMonths)}</b></div>
+      </div>
+    </Panel>
+
+    <div className="content-grid housing-grid simplified-housing-grid">
       <Panel title="Objekt & Eigenkapital" subtitle="Grunddaten der Wohnung und vorhandenes Eigenkapital" className="span-6">
         <div className="form-grid two">
           <Field label="Kaufpreis" suffix="€"><NumberInput value={project.property.purchasePrice} onValueChange={value => updateSection('property','purchasePrice',value)}/></Field>
@@ -560,9 +566,9 @@ export default function HousingFinance({ state, setState }) {
           <Field label="Anfangstilgung" suffix="%"><NumberInput value={project.bank.repaymentPct} onValueChange={value => updateSection('bank','repaymentPct',value)} step="0.01"/></Field>
           <Field label="Zinsbindung" suffix="Jahre"><NumberInput value={project.bank.fixedYears} onValueChange={value => updateSection('bank','fixedYears',value)}/></Field>
           <Field label="Gewünschte Laufzeit" suffix="Jahre"><NumberInput value={project.bank.termYears} onValueChange={value => updateSection('bank','termYears',value)}/></Field>
-          <Field label="Jährliche Ratenerhöhung" suffix="%"><NumberInput value={project.bank.annualRateIncreasePct ?? 0} onValueChange={value => updateSection('bank','annualRateIncreasePct',value)} step="0.1"/></Field>
-          <Field label="Erhöhung ab Jahr"><NumberInput min={1} value={project.bank.increaseStartYear ?? 2} onValueChange={value => updateSection('bank','increaseStartYear',value)}/></Field>
-          <Field label="Maximale Monatsrate" suffix="€"><NumberInput value={project.bank.maxMonthlyRate ?? 0} onValueChange={value => updateSection('bank','maxMonthlyRate',value)}/></Field>
+          <Field label="Monatsrate steigt jährlich um" suffix="%"><NumberInput value={project.bank.annualRateIncreasePct ?? 0} onValueChange={value => updateSection('bank','annualRateIncreasePct',value)} step="0.1"/></Field>
+          <Field label="Steigerung ab Finanzierungsjahr"><NumberInput min={1} value={project.bank.increaseStartYear ?? 2} onValueChange={value => updateSection('bank','increaseStartYear',value)}/></Field>
+          <Field label="Obergrenze Monatsrate" suffix="€"><NumberInput value={project.bank.maxMonthlyRate ?? 0} onValueChange={value => updateSection('bank','maxMonthlyRate',value)}/></Field>
         </div>
         <p className="calculation-note">Die Rate steigt jeweils zu Beginn eines Finanzierungsjahres um den eingestellten Prozentsatz. 0 % deaktiviert die automatische Erhöhung; 0 € bedeutet keine Obergrenze.</p>
         <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.bankPlan.residual(number(project.bank.fixedYears) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.bankPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.bankPlan.payoffMonths)}</b></span></div>
@@ -580,57 +586,44 @@ export default function HousingFinance({ state, setState }) {
             <Field label="Tilgungsfreie Jahre" suffix="Jahre"><NumberInput value={project.kfw.graceYears} onValueChange={value => updateSection('kfw','graceYears',value)}/></Field>
             <Field label="Zinsbindung" suffix="Jahre"><NumberInput min={1} value={project.kfw.fixedYears ?? 10} onValueChange={value => updateSection('kfw','fixedYears',value)}/></Field>
             <Field label="Gewünschte Laufzeit" suffix="Jahre"><NumberInput value={project.kfw.termYears} onValueChange={value => updateSection('kfw','termYears',value)}/></Field>
-            <Field label="Jährliche Ratenerhöhung" suffix="%"><NumberInput value={project.kfw.annualRateIncreasePct ?? 0} onValueChange={value => updateSection('kfw','annualRateIncreasePct',value)} step="0.1"/></Field>
-            <Field label="Erhöhung ab Jahr"><NumberInput min={1} value={project.kfw.increaseStartYear ?? 2} onValueChange={value => updateSection('kfw','increaseStartYear',value)}/></Field>
-            <Field label="Maximale Monatsrate" suffix="€"><NumberInput value={project.kfw.maxMonthlyRate ?? 0} onValueChange={value => updateSection('kfw','maxMonthlyRate',value)}/></Field>
+            <Field label="Monatsrate steigt jährlich um" suffix="%"><NumberInput value={project.kfw.annualRateIncreasePct ?? 0} onValueChange={value => updateSection('kfw','annualRateIncreasePct',value)} step="0.1"/></Field>
+            <Field label="Steigerung ab Finanzierungsjahr"><NumberInput min={1} value={project.kfw.increaseStartYear ?? 2} onValueChange={value => updateSection('kfw','increaseStartYear',value)}/></Field>
+            <Field label="Obergrenze Monatsrate" suffix="€"><NumberInput value={project.kfw.maxMonthlyRate ?? 0} onValueChange={value => updateSection('kfw','maxMonthlyRate',value)}/></Field>
           </div>
           <div className="loan-result-strip"><span>Restschuld nach Zinsbindung <b>{euro(summary.kfwPlan.residual(number(project.kfw.fixedYears ?? 10) * 12))}</b></span><span>Gesamtzins <b>{euro(summary.kfwPlan.totalInterest)}</b></span><span>Laufzeit <b>{durationLabel(summary.kfwPlan.payoffMonths)}</b></span></div>
         </div>
       </Panel>
 
-      <Panel title="Geplante Ratenänderungen" subtitle="Erhöhe oder senke die Monatsrate ab einem bestimmten Finanzierungsjahr" className="span-6">
+      <Panel title="Sonderzahlungen" subtitle="Einmalige zusätzliche Zahlung am Ende eines Finanzierungsjahres" className="span-12">
         <div className="finance-action-list">
-          {(project.rateChanges || []).length === 0 && <p className="finance-empty-note">Noch keine Ratenänderung geplant. Ohne Eintrag bleibt die berechnete Annuität konstant.</p>}
-          {(project.rateChanges || []).map(entry => <div className="finance-action-row" key={entry.id}>
-            <Field label="Darlehen"><select value={entry.loan || 'bank'} onChange={event => updateRateChange(entry.id, { loan: event.target.value })}><option value="bank">Bank</option><option value="kfw">KfW</option></select></Field>
-            <Field label="Ab Finanzierungsjahr"><NumberInput min={1} value={entry.startYear} onValueChange={value => updateRateChange(entry.id, { startYear: value })}/></Field>
-            <Field label="Neue Monatsrate" suffix="€"><NumberInput value={entry.monthlyRate} onValueChange={value => updateRateChange(entry.id, { monthlyRate: value })}/></Field>
-            <button className="icon-danger" title="Ratenänderung löschen" onClick={() => removeRateChange(entry.id)}><Trash2 size={18}/></button>
-          </div>)}
-        </div>
-        <button onClick={addRateChange}><Plus size={18}/> Ratenänderung hinzufügen</button>
-      </Panel>
-
-      <Panel title="Sondertilgungen" subtitle="Einmalige zusätzliche Tilgung am Ende des gewählten Finanzierungsjahres" className="span-6">
-        <div className="finance-action-list">
-          {(project.extraRepayments || []).length === 0 && <p className="finance-empty-note">Noch keine Sondertilgung eingetragen.</p>}
+          {(project.extraRepayments || []).length === 0 && <p className="finance-empty-note">Noch keine Sonderzahlung eingetragen.</p>}
           {(project.extraRepayments || []).map(entry => <div className="finance-action-row" key={entry.id}>
             <Field label="Darlehen"><select value={entry.loan || 'bank'} onChange={event => updateExtraRepayment(entry.id, { loan: event.target.value })}><option value="bank">Bank</option><option value="kfw">KfW</option></select></Field>
             <Field label="Finanzierungsjahr"><NumberInput min={1} value={entry.year} onValueChange={value => updateExtraRepayment(entry.id, { year: value })}/></Field>
             <Field label="Betrag" suffix="€"><NumberInput value={entry.amount} onValueChange={value => updateExtraRepayment(entry.id, { amount: value })}/></Field>
-            <button className="icon-danger" title="Sondertilgung löschen" onClick={() => removeExtraRepayment(entry.id)}><Trash2 size={18}/></button>
+            <button className="icon-danger" title="Sonderzahlung löschen" onClick={() => removeExtraRepayment(entry.id)}><Trash2 size={18}/></button>
           </div>)}
         </div>
-        <button onClick={addExtraRepayment}><Plus size={18}/> Sondertilgung hinzufügen</button>
-        {(summary.totalExtraRepayment > 0) && <p className="finance-summary-note">Im Modell berücksichtigt: <b>{euro(summary.totalExtraRepayment)}</b> Sondertilgungen.</p>}
+        <button onClick={addExtraRepayment}><Plus size={18}/> Sonderzahlung hinzufügen</button>
+        {(summary.totalExtraRepayment > 0) && <p className="finance-summary-note">Tatsächlich in der Berechnung berücksichtigt: <b>{euro(summary.totalExtraRepayment)}</b> Sondertilgungen.</p>}
       </Panel>
 
-      <Panel title="Wirkung deiner Tilgungsplanung" subtitle="Vergleich mit einer Finanzierung ohne Ratenänderungen, automatische Erhöhungen und Sondertilgungen" className="span-12 planning-impact-panel">
-        {!summary.planningImpact.hasPlanning ? <p className="finance-empty-note">Noch keine zusätzliche Tilgungsplanung aktiv. Trage eine Sondertilgung, eine feste Ratenänderung oder eine jährliche Ratenerhöhung ein.</p> : <>
+      <Panel title="Was bringen Tilgungssteigerung und Sonderzahlungen?" subtitle="Direkter Vergleich mit der Finanzierung ohne zusätzliche Tilgung" className="span-12 planning-impact-panel">
+        {!summary.planningImpact.hasPlanning ? <p className="finance-empty-note">Noch keine zusätzliche Tilgung aktiv. Lege eine jährliche Ratenerhöhung oder eine Sonderzahlung fest.</p> : <>
           <div className="planning-impact-grid">
-            <div><span>Sondertilgungen geplant</span><b>{euro(summary.planningImpact.plannedExtraRepayment)}</b></div>
-            <div><span>Sondertilgungen tatsächlich verrechnet</span><b>{euro(summary.totalExtraRepayment)}</b></div>
-            <div><span>Zinsersparnis gesamt</span><b>{euro(summary.planningImpact.interestSaved)}</b></div>
+            <div><span>Sonderzahlungen geplant</span><b>{euro(summary.planningImpact.plannedExtraRepayment)}</b></div>
+            <div><span>Davon tatsächlich abgezogen</span><b>{euro(summary.totalExtraRepayment)}</b></div>
+            <div><span>Gesparte Zinsen</span><b>{euro(summary.planningImpact.interestSaved)}</b></div>
             <div><span>Weniger Restschuld nach Zinsbindung</span><b>{euro(summary.planningImpact.residualReductionAtFixed)}</b></div>
-            <div><span>Bank früher schuldenfrei</span><b>{durationLabel(summary.planningImpact.bankMonthsSaved)}</b></div>
-            <div><span>KfW früher schuldenfrei</span><b>{durationLabel(summary.planningImpact.kfwMonthsSaved)}</b></div>
+            <div><span>Bankdarlehen früher fertig</span><b>{durationLabel(summary.planningImpact.bankMonthsSaved)}</b></div>
+            <div><span>KfW-Darlehen früher fertig</span><b>{durationLabel(summary.planningImpact.kfwMonthsSaved)}</b></div>
           </div>
           {summary.planningImpact.unappliedExtraRepayment > 0 && <p className="finance-warning-note">
             {euro(summary.planningImpact.unappliedExtraRepayment)} der geplanten Sondertilgungen wurden nicht mehr benötigt, weil das gewählte Darlehen vorher vollständig getilgt war.
           </p>}
           <div className="planning-comparison">
-            <span>Ohne Zusatzplanung: <b>{durationLabel(summary.planningImpact.baselinePayoffMonths)}</b> · {euro(summary.planningImpact.baselineInterest)} Zinsen</span>
-            <span>Mit deiner Planung: <b>{durationLabel(summary.payoffMonths)}</b> · {euro(summary.totalInterest)} Zinsen</span>
+            <span>Ohne zusätzliche Tilgung: <b>{durationLabel(summary.planningImpact.baselinePayoffMonths)}</b> · {euro(summary.planningImpact.baselineInterest)} Zinsen</span>
+            <span>Mit deiner Tilgungsplanung: <b>{durationLabel(summary.payoffMonths)}</b> · {euro(summary.totalInterest)} Zinsen</span>
           </div>
         </>}
       </Panel>
@@ -654,7 +647,7 @@ export default function HousingFinance({ state, setState }) {
           <div className="total"><span>Gesamt zu Beginn</span><b>{euro(summary.totalMonthly)}</b></div>
           {number(project.kfw.graceYears) > 0 && <div className="total secondary"><span>Nach KfW-Anlaufzeit</span><b>{euro(summary.totalMonthlyAfterGrace)}</b></div>}
         </div>
-        <p className="calculation-note">Ohne geplante Ratenänderung bleibt die Annuität konstant. Ratenänderungen und Sondertilgungen werden monatsgenau berücksichtigt. Zinsen werden monatlich auf die jeweilige Restschuld berechnet. Änderungen des Zinssatzes nach der Zinsbindung folgen mit der Anschlussfinanzierung in einer späteren Version.</p>
+        <p className="calculation-note">Ohne Tilgungssteigerung bleibt die Annuität konstant. Jährliche Ratenerhöhungen und Sonderzahlungen werden monatsgenau berücksichtigt. Zinsen werden monatlich auf die jeweilige Restschuld berechnet. Der eingegebene Sollzins wird für die gesamte Modelllaufzeit verwendet.</p>
       </Panel>
 
       <Panel title="Leistbarkeitsampel" subtitle="Haushaltsrechnung auf Basis deines Finanzplans" className="span-12 affordability-panel">
