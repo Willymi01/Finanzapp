@@ -127,6 +127,7 @@ export const createHousingFinanceProject = (state, index = 1) => ({
     fixed: structuredClone(state?.budget?.fixed || []),
     variable: structuredClone(state?.budget?.variable || []),
   },
+  scenarioEvolution: { years: 30, incomeIncreasePct: 2, costIncreasePct: 2, housingCostIncreasePct: 2, events: [] },
   notes: '',
   createdAt: new Date().toISOString(),
 })
@@ -352,18 +353,49 @@ export function housingFinanceSummary(state, project) {
   const housingRatio = monthlyIncome > 0 ? stressHousingCost / monthlyIncome : 1
   const debtServiceRatio = monthlyIncome > 0 ? Math.max(bankRate + kfwRate, creditRateAfterGrace) / monthlyIncome : 1
 
+  const evolution = project.scenarioEvolution || {}
+  const scenarioYears = Math.max(1, Math.min(50, Math.round(number(evolution.years) || 30)))
+  const incomeIncreasePct = number(evolution.incomeIncreasePct)
+  const costIncreasePct = number(evolution.costIncreasePct)
+  const housingCostIncreasePct = number(evolution.housingCostIncreasePct)
+  const scenarioEvents = evolution.events || []
+  const timeline = Array.from({ length: scenarioYears }, (_, index) => {
+    const year = index + 1
+    const incomeDelta = scenarioEvents.filter(item => item.type === 'income' && number(item.startYear) <= year).reduce((sum, item) => sum + Number(item.monthlyDelta || 0), 0)
+    const costDelta = scenarioEvents.filter(item => item.type === 'cost' && number(item.startYear) <= year).reduce((sum, item) => sum + Number(item.monthlyDelta || 0), 0)
+    const income = monthlyIncome * Math.pow(1 + pct(incomeIncreasePct), index) + incomeDelta
+    const livingCosts = Math.max(0, otherLivingCosts * Math.pow(1 + pct(costIncreasePct), index) + costDelta)
+    const bankRows = bankPlan.rows.slice(index * 12, index * 12 + 12)
+    const kfwRows = kfwPlan.rows.slice(index * 12, index * 12 + 12)
+    const creditPayments = bankRows.reduce((sum, row) => sum + number(row.payment), 0) + kfwRows.reduce((sum, row) => sum + number(row.payment), 0)
+    const specialPayments = bankRows.reduce((sum, row) => sum + number(row.extraRepayment), 0) + kfwRows.reduce((sum, row) => sum + number(row.extraRepayment), 0)
+    const creditRate = creditPayments / 12
+    const specialMonthly = specialPayments / 12
+    const runningHousingCosts = monthlyHousingCosts * Math.pow(1 + pct(housingCostIncreasePct), index)
+    const housingCost = creditRate + specialMonthly + runningHousingCosts
+    const buffer = income - livingCosts - housingCost
+    const housingRatio = income > 0 ? housingCost / income : 1
+    return { year, income, livingCosts, creditRate, specialPayments, specialMonthly, runningHousingCosts, housingCost, buffer, housingRatio }
+  })
+  const worstYear = timeline.reduce((worst, row) => !worst || row.buffer < worst.buffer ? row : worst, null)
+  const bestYear = timeline.reduce((best, row) => !best || row.buffer > best.buffer ? row : best, null)
+  const averageBuffer = timeline.length ? timeline.reduce((sum, row) => sum + row.buffer, 0) / timeline.length : 0
+  const firstCriticalYear = timeline.find(row => row.buffer < 0 || row.housingRatio > 0.5) || null
+  const timelineRemainingBuffer = worstYear?.buffer ?? remainingBuffer
+  const timelineHousingRatio = worstYear?.housingRatio ?? housingRatio
+
   let affordability = {
     kind: 'red',
     label: 'Nicht finanzierbar',
     headline: 'Die geplante Belastung ist aktuell zu hoch.',
   }
-  if (monthlyIncome > 0 && remainingBuffer >= 500 && housingRatio <= 0.40 && debtServiceRatio <= 0.35) {
+  if (monthlyIncome > 0 && timelineRemainingBuffer >= 500 && timelineHousingRatio <= 0.40) {
     affordability = {
       kind: 'green',
       label: 'Gut finanzierbar',
       headline: 'Die Finanzierung lässt einen soliden monatlichen Puffer.',
     }
-  } else if (monthlyIncome > 0 && remainingBuffer >= 0 && housingRatio <= 0.50 && debtServiceRatio <= 0.45) {
+  } else if (monthlyIncome > 0 && timelineRemainingBuffer >= 0 && timelineHousingRatio <= 0.50) {
     affordability = {
       kind: 'yellow',
       label: 'Knapp finanzierbar',
@@ -405,7 +437,7 @@ export function housingFinanceSummary(state, project) {
       stressHousingCost,
       remainingBuffer,
       housingRatio,
-      debtServiceRatio,
+      debtServiceRatio, timeline, worstYear, bestYear, averageBuffer, firstCriticalYear, scenarioYears,
     },
   }
 }
@@ -524,6 +556,10 @@ export default function HousingFinance({ state, setState }) {
     ...item,
     scenarioBudget: { ...(item.scenarioBudget || {}), [group]: (item.scenarioBudget?.[group] || []).filter(entry => entry.id !== id) },
   }))
+  const updateScenarioEvolution = (field, value) => updateActiveProject(item => ({ ...item, scenarioEvolution: { ...(item.scenarioEvolution || {}), [field]: value } }))
+  const addScenarioEvent = type => updateActiveProject(item => ({ ...item, scenarioEvolution: { ...(item.scenarioEvolution || {}), events: [...(item.scenarioEvolution?.events || []), { id: crypto.randomUUID(), type, name: type === 'income' ? 'Gehaltssprung' : 'Lebensereignis', startYear: 2, monthlyDelta: 0 }] } }))
+  const updateScenarioEvent = (id, patch) => updateActiveProject(item => ({ ...item, scenarioEvolution: { ...(item.scenarioEvolution || {}), events: (item.scenarioEvolution?.events || []).map(entry => entry.id === id ? { ...entry, ...patch } : entry) } }))
+  const removeScenarioEvent = id => updateActiveProject(item => ({ ...item, scenarioEvolution: { ...(item.scenarioEvolution || {}), events: (item.scenarioEvolution?.events || []).filter(entry => entry.id !== id) } }))
 
   if (!project) return <Panel title="Wohnungsfinanzierung Pro" subtitle="Berechne eine konkrete Wohnung vom Kaufpreis bis zur vollständigen Tilgung.">
     <div className="housing-empty"><Building2 size={48}/><h3>Noch keine Finanzierung angelegt</h3><p>Lege dein erstes Projekt an. Deine aktuellen Vermögenswerte können automatisch als Eigenkapital übernommen werden.</p><button className="primary" onClick={addProject}><Plus size={18}/> Erste Finanzierung anlegen</button></div>
@@ -726,31 +762,31 @@ export default function HousingFinance({ state, setState }) {
         </div>)}</div>
       </Panel>
 
-      <Panel title="Leistbarkeitsampel" subtitle="Haushaltsrechnung mit deinem Machbarkeits-Finanzplan" className="span-12 affordability-panel">
+      <Panel title="Jahres-Szenarioplan & Machbarkeitsampel" subtitle="Einkommen, Lebenshaltung und Kreditbelastung über die Zeit" className="span-12 affordability-panel">
+        <div className="scenario-evolution-settings">
+          <Field label="Planungszeitraum" suffix="Jahre"><NumberInput min={1} max={50} value={project.scenarioEvolution?.years ?? 30} onValueChange={value => updateScenarioEvolution('years', value)}/></Field>
+          <Field label="Einkommen steigt jährlich" suffix="%"><NumberInput value={project.scenarioEvolution?.incomeIncreasePct ?? 2} onValueChange={value => updateScenarioEvolution('incomeIncreasePct', value)}/></Field>
+          <Field label="Lebenshaltung steigt jährlich" suffix="%"><NumberInput value={project.scenarioEvolution?.costIncreasePct ?? 2} onValueChange={value => updateScenarioEvolution('costIncreasePct', value)}/></Field>
+          <Field label="Wohnnebenkosten steigen jährlich" suffix="%"><NumberInput value={project.scenarioEvolution?.housingCostIncreasePct ?? 2} onValueChange={value => updateScenarioEvolution('housingCostIncreasePct', value)}/></Field>
+        </div>
         <div className={`affordability-hero ${summary.affordability.kind}`}>
-          <div className="affordability-icon">
-            {summary.affordability.kind === 'green' ? <CircleCheck size={42}/> : summary.affordability.kind === 'yellow' ? <TriangleAlert size={42}/> : <CircleX size={42}/>} 
-          </div>
-          <div>
-            <span className="affordability-label">{summary.affordability.label}</span>
-            <h3>{summary.affordability.headline}</h3>
-            <p>Nach allen bisherigen Lebenshaltungskosten und der künftigen Wohnbelastung bleiben rechnerisch <b>{euro(summary.affordability.remainingBuffer)}</b> pro Monat.</p>
-          </div>
+          <div className="affordability-icon">{summary.affordability.kind === 'green' ? <CircleCheck size={42}/> : summary.affordability.kind === 'yellow' ? <TriangleAlert size={42}/> : <CircleX size={42}/>}</div>
+          <div><span className="affordability-label">{summary.affordability.label}</span><h3>{summary.affordability.headline}</h3><p>Bewertet wird das schwächste Jahr. Der niedrigste Puffer liegt bei <b>{euro(summary.affordability.worstYear?.buffer || 0)}</b> pro Monat.</p></div>
         </div>
-        <div className="affordability-grid">
-          <div><span>Monatliches Einkommen</span><b>{euro(summary.affordability.monthlyIncome)}</b></div>
-          <div><span>Erkannte heutige Wohnkosten</span><b>− {euro(summary.affordability.currentHousingCosts)}</b></div>
-          <div><span>Übrige Lebenshaltungskosten</span><b>{euro(summary.affordability.otherLivingCosts)}</b></div>
-          <div><span>Künftige Wohnbelastung</span><b>{euro(summary.affordability.stressHousingCost)}</b></div>
-          <div className="highlight"><span>Monatlicher Restpuffer</span><b>{euro(summary.affordability.remainingBuffer)}</b></div>
-          <div><span>Wohnkostenquote</span><b>{(summary.affordability.housingRatio * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} %</b></div>
+        <div className="affordability-grid timeline-kpis">
+          <div><span>Schlechtestes Jahr</span><b>Jahr {summary.affordability.worstYear?.year || 1}</b></div>
+          <div><span>Niedrigster Puffer</span><b>{euro(summary.affordability.worstYear?.buffer || 0)}</b></div>
+          <div><span>Durchschnittlicher Puffer</span><b>{euro(summary.affordability.averageBuffer)}</b></div>
+          <div><span>Höchste Wohnkostenquote</span><b>{((summary.affordability.worstYear?.housingRatio || 0) * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} %</b></div>
+          <div><span>Bestes Jahr</span><b>Jahr {summary.affordability.bestYear?.year || 1} · {euro(summary.affordability.bestYear?.buffer || 0)}</b></div>
+          <div className="highlight"><span>Erstes kritisches Jahr</span><b>{summary.affordability.firstCriticalYear ? `Jahr ${summary.affordability.firstCriticalYear.year}` : 'Keines'}</b></div>
         </div>
-        <div className="affordability-scale" aria-label="Bewertungsgrenzen der Leistbarkeitsampel">
-          <span className="green">Grün: mindestens 500 € Puffer und höchstens 40 % Wohnkostenquote</span>
-          <span className="yellow">Gelb: positiver Puffer und höchstens 50 % Wohnkostenquote</span>
-          <span className="red">Rot: negativer Puffer oder darüberliegende Belastung</span>
+        <div className="scenario-events-grid">
+          <div><div className="scenario-section-head"><h3>Einkommenssprünge</h3><button onClick={() => addScenarioEvent('income')}><Plus size={16}/> Sprung</button></div><p className="calculation-note">Beispiel: ab Jahr 4 monatlich 300 € mehr Einkommen.</p><div className="scenario-list">{(project.scenarioEvolution?.events || []).filter(item => item.type === 'income').map(entry => <div className="scenario-event-row" key={entry.id}><input value={entry.name} onChange={event => updateScenarioEvent(entry.id, { name: event.target.value })}/><Field label="Ab Jahr"><NumberInput min={1} value={entry.startYear} onValueChange={value => updateScenarioEvent(entry.id, { startYear: value })}/></Field><Field label="Mehr pro Monat" suffix="€"><NumberInput value={entry.monthlyDelta} onValueChange={value => updateScenarioEvent(entry.id, { monthlyDelta: value })}/></Field><button className="icon-danger" onClick={() => removeScenarioEvent(entry.id)}><Trash2 size={17}/></button></div>)}</div></div>
+          <div><div className="scenario-section-head"><h3>Kostenänderungen & Lebensereignisse</h3><button onClick={() => addScenarioEvent('cost')}><Plus size={16}/> Ereignis</button></div><p className="calculation-note">Positive Beträge erhöhen die Kosten. Negative Beträge lassen Kosten entfallen.</p><div className="scenario-list">{(project.scenarioEvolution?.events || []).filter(item => item.type === 'cost').map(entry => <div className="scenario-event-row" key={entry.id}><input value={entry.name} onChange={event => updateScenarioEvent(entry.id, { name: event.target.value })}/><Field label="Ab Jahr"><NumberInput min={1} value={entry.startYear} onValueChange={value => updateScenarioEvent(entry.id, { startYear: value })}/></Field><Field label="Änderung pro Monat" suffix="€"><input type="number" step="any" value={entry.monthlyDelta ?? 0} onChange={event => updateScenarioEvent(entry.id, { monthlyDelta: Number(event.target.value || 0) })}/></Field><button className="icon-danger" onClick={() => removeScenarioEvent(entry.id)}><Trash2 size={17}/></button></div>)}</div></div>
         </div>
-        <p className="calculation-note">Die Ampel ist eine persönliche Haushaltsorientierung und keine Kreditzusage. Sie verwendet ausschließlich den separaten Machbarkeits-Finanzplan dieses Projekts. Dort erkannte Positionen wie Miete, Strom, Heizung, Internet und Kabel werden durch die neue Wohnbelastung ersetzt, damit sie nicht doppelt gerechnet werden. Jährliche Sonderzahlungen werden bewusst nicht als sicheres Monatseinkommen angesetzt.</p>
+        <div className="timeline-table-wrap"><table className="timeline-table"><thead><tr><th>Jahr</th><th>Einkommen / Monat</th><th>Übrige Kosten</th><th>Kreditrate</th><th>Wohnnebenkosten</th><th>Sonderzahlung</th><th>Puffer / Monat</th></tr></thead><tbody>{summary.affordability.timeline.map(row => <tr key={row.year} className={row.buffer < 0 ? 'critical' : row.buffer < 500 ? 'tight' : ''}><td>{row.year}</td><td>{euro(row.income)}</td><td>{euro(row.livingCosts)}</td><td>{euro(row.creditRate)}</td><td>{euro(row.runningHousingCosts)}</td><td>{euro(row.specialPayments)}</td><td><b>{euro(row.buffer)}</b></td></tr>)}</tbody></table></div>
+        <p className="calculation-note">Die Kreditrate wird automatisch aus dem Tilgungsplan übernommen und berücksichtigt KfW-Anlaufjahre, jährliche Tilgungssteigerungen und Sonderzahlungen. Sonderzahlungen werden für die Machbarkeit auf zwölf Monate des jeweiligen Jahres verteilt.</p>
       </Panel>
 
       <Panel title="Restschuldentwicklung" subtitle="Bank- und KfW-Darlehen zusammen" className="span-12">
