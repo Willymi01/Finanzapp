@@ -44,6 +44,11 @@ export const normaliseState = value => {
     kfw: { annualRateIncreasePct: 0, increaseStartYear: 2, maxMonthlyRate: 0, ...(project.kfw || {}) },
     rateChanges: Array.isArray(project.rateChanges) ? project.rateChanges : [],
     extraRepayments: Array.isArray(project.extraRepayments) ? project.extraRepayments : [],
+    scenarioBudget: {
+      income: Array.isArray(project.scenarioBudget?.income) ? project.scenarioBudget.income : structuredClone(merged.budget.income || []),
+      fixed: Array.isArray(project.scenarioBudget?.fixed) ? project.scenarioBudget.fixed : structuredClone(merged.budget.fixed || []),
+      variable: Array.isArray(project.scenarioBudget?.variable) ? project.scenarioBudget.variable : structuredClone(merged.budget.variable || []),
+    },
   })) : []
   const activeProjectExists = merged.housingFinance.projects.some(project => project.id === merged.housingFinance.activeProjectId)
   if (!activeProjectExists) merged.housingFinance.activeProjectId = merged.housingFinance.projects[0]?.id || null

@@ -122,6 +122,11 @@ export const createHousingFinanceProject = (state, index = 1) => ({
   },
   rateChanges: [],
   extraRepayments: [],
+  scenarioBudget: {
+    income: structuredClone(state?.budget?.income || []),
+    fixed: structuredClone(state?.budget?.fixed || []),
+    variable: structuredClone(state?.budget?.variable || []),
+  },
   notes: '',
   createdAt: new Date().toISOString(),
 })
@@ -333,10 +338,15 @@ export function housingFinanceSummary(state, project) {
     if (!housingCostPattern.test(String(item.name || ''))) return sum
     return sum + number(item.cost) / Math.max(1, number(item.factor) || 1)
   }, 0)
-  const monthlyIncome = incomeTotal(state)
-  const currentFixedCosts = fixedTotal(state)
-  const currentVariableCosts = variableTotal(state)
-  const otherLivingCosts = Math.max(0, currentFixedCosts - currentHousingCosts) + currentVariableCosts
+  const scenarioBudget = project.scenarioBudget || state.budget || { income: [], fixed: [], variable: [] }
+  const monthlyIncome = (scenarioBudget.income || []).reduce((sum, item) => sum + number(item.amount), 0)
+  const scenarioFixedCosts = (scenarioBudget.fixed || []).reduce((sum, item) => sum + number(item.cost) / Math.max(1, number(item.factor) || 1), 0)
+  const scenarioVariableCosts = (scenarioBudget.variable || []).reduce((sum, item) => sum + number(item.amount), 0)
+  const scenarioHousingCosts = (scenarioBudget.fixed || []).reduce((sum, item) => {
+    if (!housingCostPattern.test(String(item.name || ''))) return sum
+    return sum + number(item.cost) / Math.max(1, number(item.factor) || 1)
+  }, 0)
+  const otherLivingCosts = Math.max(0, scenarioFixedCosts - scenarioHousingCosts) + scenarioVariableCosts
   const stressHousingCost = Math.max(totalMonthly, totalMonthlyAfterGrace)
   const remainingBuffer = monthlyIncome - otherLivingCosts - stressHousingCost
   const housingRatio = monthlyIncome > 0 ? stressHousingCost / monthlyIncome : 1
@@ -388,8 +398,10 @@ export function housingFinanceSummary(state, project) {
     affordability: {
       ...affordability,
       monthlyIncome,
-      currentHousingCosts,
+      currentHousingCosts: scenarioHousingCosts,
       otherLivingCosts,
+      scenarioFixedCosts,
+      scenarioVariableCosts,
       stressHousingCost,
       remainingBuffer,
       housingRatio,
@@ -484,6 +496,34 @@ export default function HousingFinance({ state, setState }) {
   }))
   const removeExtraRepayment = id => updateActiveProject(item => ({ ...item, extraRepayments: (item.extraRepayments || []).filter(entry => entry.id !== id) }))
 
+  const copyCurrentBudget = () => updateActiveProject(item => ({
+    ...item,
+    scenarioBudget: {
+      income: structuredClone(state.budget?.income || []),
+      fixed: structuredClone(state.budget?.fixed || []),
+      variable: structuredClone(state.budget?.variable || []),
+    },
+  }))
+  const updateScenarioItem = (group, id, key, value) => updateActiveProject(item => ({
+    ...item,
+    scenarioBudget: {
+      ...(item.scenarioBudget || {}),
+      [group]: (item.scenarioBudget?.[group] || []).map(entry => entry.id === id ? { ...entry, [key]: key === 'name' ? value : number(value) } : entry),
+    },
+  }))
+  const addScenarioItem = group => updateActiveProject(item => ({
+    ...item,
+    scenarioBudget: {
+      ...(item.scenarioBudget || {}),
+      [group]: [...(item.scenarioBudget?.[group] || []), group === 'fixed'
+        ? { id: crypto.randomUUID(), name: 'Neue Fixkosten', factor: 1, cost: 0 }
+        : { id: crypto.randomUUID(), name: group === 'income' ? 'Neues Einkommen' : 'Neue variable Ausgabe', amount: 0 }],
+    },
+  }))
+  const removeScenarioItem = (group, id) => updateActiveProject(item => ({
+    ...item,
+    scenarioBudget: { ...(item.scenarioBudget || {}), [group]: (item.scenarioBudget?.[group] || []).filter(entry => entry.id !== id) },
+  }))
 
   if (!project) return <Panel title="Wohnungsfinanzierung Pro" subtitle="Berechne eine konkrete Wohnung vom Kaufpreis bis zur vollständigen Tilgung.">
     <div className="housing-empty"><Building2 size={48}/><h3>Noch keine Finanzierung angelegt</h3><p>Lege dein erstes Projekt an. Deine aktuellen Vermögenswerte können automatisch als Eigenkapital übernommen werden.</p><button className="primary" onClick={addProject}><Plus size={18}/> Erste Finanzierung anlegen</button></div>
@@ -650,7 +690,43 @@ export default function HousingFinance({ state, setState }) {
         <p className="calculation-note">Ohne Tilgungssteigerung bleibt die Annuität konstant. Jährliche Ratenerhöhungen und Sonderzahlungen werden monatsgenau berücksichtigt. Zinsen werden monatlich auf die jeweilige Restschuld berechnet. Der eingegebene Sollzins wird für die gesamte Modelllaufzeit verwendet.</p>
       </Panel>
 
-      <Panel title="Leistbarkeitsampel" subtitle="Haushaltsrechnung auf Basis deines Finanzplans" className="span-12 affordability-panel">
+      <Panel title="Machbarkeits-Finanzplan" subtitle="Separate Kopie deines Finanzplans – Änderungen gelten nur für diese Wohnungsfinanzierung" className="span-12 scenario-budget-panel" action={<button onClick={copyCurrentBudget}>Aktuellen Finanzplan neu kopieren</button>}>
+        <p className="calculation-note">Hier kannst du Einkommen und Kosten für ein mögliches Leben nach dem Wohnungskauf verändern. Dein normaler Finanzplan bleibt vollständig unverändert.</p>
+        <div className="scenario-budget-summary">
+          <div><span>Einkommen</span><b>{euro(summary.affordability.monthlyIncome)}</b></div>
+          <div><span>Fixkosten im Szenario</span><b>{euro(summary.affordability.scenarioFixedCosts)}</b></div>
+          <div><span>Variable Kosten</span><b>{euro(summary.affordability.scenarioVariableCosts)}</b></div>
+          <div className="highlight"><span>Puffer nach neuer Wohnung</span><b>{euro(summary.affordability.remainingBuffer)}</b></div>
+        </div>
+        <div className="scenario-budget-columns">
+          <div>
+            <div className="scenario-section-head"><h3>Einkommen</h3><button onClick={() => addScenarioItem('income')}><Plus size={16}/> Position</button></div>
+            <div className="scenario-list">{(project.scenarioBudget?.income || []).map(entry => <div className="scenario-row simple" key={entry.id}>
+              <input aria-label="Bezeichnung Einkommen" value={entry.name} onChange={event => updateScenarioItem('income', entry.id, 'name', event.target.value)}/>
+              <Field label="Monatlich" suffix="€"><NumberInput value={entry.amount} onValueChange={value => updateScenarioItem('income', entry.id, 'amount', value)}/></Field>
+              <button className="icon-danger" onClick={() => removeScenarioItem('income', entry.id)}><Trash2 size={17}/></button>
+            </div>)}</div>
+          </div>
+          <div>
+            <div className="scenario-section-head"><h3>Variable Ausgaben</h3><button onClick={() => addScenarioItem('variable')}><Plus size={16}/> Position</button></div>
+            <div className="scenario-list">{(project.scenarioBudget?.variable || []).map(entry => <div className="scenario-row simple" key={entry.id}>
+              <input aria-label="Bezeichnung variable Ausgabe" value={entry.name} onChange={event => updateScenarioItem('variable', entry.id, 'name', event.target.value)}/>
+              <Field label="Monatlich" suffix="€"><NumberInput value={entry.amount} onValueChange={value => updateScenarioItem('variable', entry.id, 'amount', value)}/></Field>
+              <button className="icon-danger" onClick={() => removeScenarioItem('variable', entry.id)}><Trash2 size={17}/></button>
+            </div>)}</div>
+          </div>
+        </div>
+        <div className="scenario-section-head fixed-head"><h3>Fixkosten</h3><button onClick={() => addScenarioItem('fixed')}><Plus size={16}/> Fixkosten</button></div>
+        <div className="scenario-fixed-list">{(project.scenarioBudget?.fixed || []).map(entry => <div className="scenario-row fixed" key={entry.id}>
+          <input aria-label="Bezeichnung Fixkosten" value={entry.name} onChange={event => updateScenarioItem('fixed', entry.id, 'name', event.target.value)}/>
+          <Field label="Alle … Monate"><NumberInput min={1} value={entry.factor} onValueChange={value => updateScenarioItem('fixed', entry.id, 'factor', value)}/></Field>
+          <Field label="Betrag" suffix="€"><NumberInput value={entry.cost} onValueChange={value => updateScenarioItem('fixed', entry.id, 'cost', value)}/></Field>
+          <div className="scenario-monthly-value"><span>Monatlich</span><b>{euro(number(entry.cost) / Math.max(1, number(entry.factor) || 1))}</b></div>
+          <button className="icon-danger" onClick={() => removeScenarioItem('fixed', entry.id)}><Trash2 size={17}/></button>
+        </div>)}</div>
+      </Panel>
+
+      <Panel title="Leistbarkeitsampel" subtitle="Haushaltsrechnung mit deinem Machbarkeits-Finanzplan" className="span-12 affordability-panel">
         <div className={`affordability-hero ${summary.affordability.kind}`}>
           <div className="affordability-icon">
             {summary.affordability.kind === 'green' ? <CircleCheck size={42}/> : summary.affordability.kind === 'yellow' ? <TriangleAlert size={42}/> : <CircleX size={42}/>} 
@@ -674,7 +750,7 @@ export default function HousingFinance({ state, setState }) {
           <span className="yellow">Gelb: positiver Puffer und höchstens 50 % Wohnkostenquote</span>
           <span className="red">Rot: negativer Puffer oder darüberliegende Belastung</span>
         </div>
-        <p className="calculation-note">Die Ampel ist eine persönliche Haushaltsorientierung und keine Kreditzusage. Erkannte aktuelle Positionen wie Miete, Strom, Heizung, Internet und Kabel werden durch die neue Wohnbelastung ersetzt, damit sie nicht doppelt gerechnet werden. Jährliche Sonderzahlungen werden bewusst nicht als sicheres Monatseinkommen angesetzt.</p>
+        <p className="calculation-note">Die Ampel ist eine persönliche Haushaltsorientierung und keine Kreditzusage. Sie verwendet ausschließlich den separaten Machbarkeits-Finanzplan dieses Projekts. Dort erkannte Positionen wie Miete, Strom, Heizung, Internet und Kabel werden durch die neue Wohnbelastung ersetzt, damit sie nicht doppelt gerechnet werden. Jährliche Sonderzahlungen werden bewusst nicht als sicheres Monatseinkommen angesetzt.</p>
       </Panel>
 
       <Panel title="Restschuldentwicklung" subtitle="Bank- und KfW-Darlehen zusammen" className="span-12">

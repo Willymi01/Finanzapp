@@ -544,3 +544,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .housing-kpi-grid, .housing-overview-grid { grid-template-columns: 1fr; }
   .simplified-housing-grid .finance-action-row { grid-template-columns: 1fr; }
 }
+
+
+/* V10.9.8: separater Machbarkeits-Finanzplan */
+.scenario-budget-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.scenario-budget-summary>div{background:var(--surface-2,#111920);border:1px solid var(--border,#2a3944);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.scenario-budget-summary span,.scenario-monthly-value span{color:var(--muted,#9db7d1);font-size:.86rem}.scenario-budget-summary b{font-size:1.15rem}.scenario-budget-summary .highlight{border-color:#6baa35;background:rgba(107,170,53,.1)}
+.scenario-budget-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0}.scenario-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 10px}.scenario-section-head h3{margin:0}.scenario-list,.scenario-fixed-list{display:grid;gap:10px}.scenario-row{display:grid;align-items:end;gap:10px;background:rgba(5,10,14,.28);border:1px solid var(--border,#2a3944);border-radius:13px;padding:12px}.scenario-row.simple{grid-template-columns:minmax(180px,1fr) minmax(140px,220px) auto}.scenario-row.fixed{grid-template-columns:minmax(180px,1.5fr) minmax(110px,.65fr) minmax(130px,.8fr) minmax(110px,.65fr) auto}.scenario-row>input{min-height:44px}.scenario-monthly-value{align-self:center;display:flex;flex-direction:column;gap:4px}.fixed-head{margin-top:24px}
+@media(max-width:900px){.scenario-budget-summary{grid-template-columns:1fr 1fr}.scenario-budget-columns{grid-template-columns:1fr}.scenario-row.fixed{grid-template-columns:1fr 1fr}.scenario-row.fixed>input{grid-column:1/-1}.scenario-row.fixed .icon-danger{justify-self:end}.scenario-monthly-value{align-self:end}}
+@media(max-width:600px){.scenario-budget-summary{grid-template-columns:1fr}.scenario-row.simple,.scenario-row.fixed{grid-template-columns:1fr}.scenario-row.fixed>input{grid-column:auto}.scenario-row .icon-danger{justify-self:stretch}}
